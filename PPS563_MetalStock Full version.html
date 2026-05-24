@@ -1,0 +1,3335 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PPS 563 | Metal Sheet Stock</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #1f2937;
+  --surface3: #263445;
+  --border: #2d3748;
+  --border2: #374151;
+  --accent: #2563eb;
+  --accent2: #1d4ed8;
+  --accent-light: #3b82f6;
+  --accent-glow: rgba(37,99,235,0.15);
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --green: #10b981;
+  --green-bg: rgba(16,185,129,0.1);
+  --orange: #f59e0b;
+  --orange-bg: rgba(245,158,11,0.1);
+  --red: #ef4444;
+  --red-bg: rgba(239,68,68,0.1);
+  --purple: #8b5cf6;
+  --purple-bg: rgba(139,92,246,0.1);
+  --teal: #14b8a6;
+  --teal-bg: rgba(20,184,166,0.1);
+  --radius: 8px;
+  --radius2: 12px;
+  --font: 'IBM Plex Sans Thai', sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; font-family: var(--font); background: var(--bg); color: var(--text); font-size: 14px; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+.page { display: none; min-height: 100vh; }
+.page.active { display: block; }
+
+/* LOGIN */
+#loginPage { display: none; align-items: center; justify-content: center; min-height: 100vh;
+  background: radial-gradient(ellipse at 20% 50%, rgba(37,99,235,0.08) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 20%, rgba(59,130,246,0.05) 0%, transparent 50%), var(--bg); }
+#loginPage.active { display: flex; }
+.login-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius2);
+  padding: 40px 36px; width: 380px; max-width: 94vw; box-shadow: 0 25px 50px rgba(0,0,0,0.5); animation: fadeUp 0.4s ease; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+.login-brand { text-align: center; margin-bottom: 32px; }
+.login-brand .tag { font-family: var(--mono); font-size: 11px; color: var(--accent-light); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px; }
+.divider-line { height: 1px; background: linear-gradient(90deg, transparent, var(--border2), transparent); margin: 20px 0; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 6px; letter-spacing: 0.5px; text-transform: uppercase; }
+.form-group input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 10px 14px; color: var(--text); font-family: var(--mono); font-size: 14px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+.form-group input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.btn-login { width: 100%; padding: 12px; background: var(--accent); border: none; border-radius: var(--radius);
+  color: #fff; font-family: var(--font); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px;
+  transition: background 0.2s, transform 0.1s; letter-spacing: 0.5px; }
+.btn-login:hover { background: var(--accent2); }
+.btn-login:active { transform: scale(0.98); }
+.error-msg { display: none; margin-top: 12px; padding: 10px 14px; background: var(--red-bg);
+  border: 1px solid rgba(239,68,68,0.3); border-radius: var(--radius); color: var(--red); font-size: 13px; text-align: center; animation: shake 0.3s ease; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+.error-msg.show { display: block; }
+
+/* NAV */
+.topnav { position: sticky; top: 0; z-index: 100; background: rgba(22,27,34,0.95); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; height: 52px; gap: 8px; }
+.nav-left { display: flex; align-items: center; gap: 10px; }
+.nav-center { flex: 1; }
+.nav-right { display: flex; align-items: center; gap: 6px; }
+.nav-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.nav-subtitle { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+
+.btn-icon { width: 34px; height: 34px; border: 1px solid var(--border); background: var(--surface2); border-radius: var(--radius);
+  color: var(--text2); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; flex-shrink: 0; font-size: 14px; }
+.btn-icon:hover { border-color: var(--accent); color: var(--accent-light); background: var(--accent-glow); }
+
+.btn-sm { padding: 6px 12px; border-radius: var(--radius); font-family: var(--font); font-size: 12px; font-weight: 600;
+  cursor: pointer; border: 1px solid; transition: all 0.2s; white-space: nowrap; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
+.btn-outline { background: transparent; border-color: var(--border2); color: var(--text2); }
+.btn-outline:hover { border-color: var(--accent); color: var(--accent-light); }
+.btn-danger-outline { background: transparent; border-color: rgba(239,68,68,0.4); color: var(--red); }
+.btn-danger-outline:hover { background: var(--red-bg); }
+.btn-success-outline { background: transparent; border-color: rgba(16,185,129,0.4); color: var(--green); }
+.btn-success-outline:hover { background: var(--green-bg); }
+.btn-warning-outline { background: transparent; border-color: rgba(245,158,11,0.4); color: var(--orange); }
+.btn-warning-outline:hover { background: var(--orange-bg); }
+/* Special transfer buttons */
+.btn-export { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.45); color: var(--green);
+  padding: 6px 13px; border-radius: var(--radius); font-family: var(--font); font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap; display:flex; align-items:center; gap:5px; }
+.btn-export:hover { background: rgba(16,185,129,0.22); border-color: var(--green); }
+.btn-export svg { width:13px; height:13px; flex-shrink:0; }
+  padding: 7px 14px; border-radius: var(--radius); font-family: var(--font); font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.btn-scrap:hover { background: rgba(245,158,11,0.22); }
+.btn-return { background: rgba(20,184,166,0.12); border: 1px solid rgba(20,184,166,0.5); color: var(--teal);
+  padding: 7px 14px; border-radius: var(--radius); font-family: var(--font); font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.btn-return:hover { background: rgba(20,184,166,0.22); }
+
+/* Notification */
+.notif-wrap { position: relative; }
+.notif-badge { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; background: var(--red);
+  border-radius: 50%; font-size: 9px; font-weight: 700; color: #fff; display: flex; align-items: center;
+  justify-content: center; display: none; }
+.notif-badge.show { display: flex; }
+
+/* CONTENT */
+.content-full { padding: 16px; }
+
+/* TABLE */
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius2); background: var(--surface); }
+table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 1000px; }
+thead { background: var(--surface2); border-bottom: 1px solid var(--border); }
+thead th { padding: 10px 8px; text-align: left; font-weight: 600; color: var(--text2); font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(37,99,235,0.04); }
+tbody tr.new-row { background: rgba(37,99,235,0.06); }
+tbody tr.row-scrap-transfer { background: rgba(245,158,11,0.04); }
+tbody tr.row-return-transfer { background: rgba(20,184,166,0.04); }
+td { padding: 8px; vertical-align: middle; color: var(--text); }
+
+/* SEARCH ROW */
+.search-row td { padding: 6px 8px; background: var(--surface2); border-bottom: 1px solid var(--border2); }
+.search-row input { width: 100%; background: var(--surface3); border: 1px solid var(--border); border-radius: 6px;
+  padding: 5px 8px; color: var(--text); font-size: 11px; outline: none; font-family: var(--font); }
+.search-row input:focus { border-color: var(--accent); }
+.search-row input::placeholder { color: var(--text3); }
+
+/* INPUTS IN TABLE */
+td input[type="text"], td input[type="number"], td input[type="date"], td select {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+  padding: 5px 8px; color: var(--text); font-size: 12px; font-family: var(--font);
+  outline: none; width: 100%; transition: border-color 0.2s; }
+td input:focus, td select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+td select { cursor: pointer; }
+td select option { background: var(--surface2); }
+
+/* size input pair */
+.size-pair { display: flex; align-items: center; gap: 4px; }
+.size-pair input { width: 70px !important; flex-shrink: 0; }
+.size-pair span { color: var(--text3); font-size: 11px; white-space: nowrap; }
+
+/* BADGES */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; white-space: nowrap; }
+.badge-wait { background: var(--orange-bg); color: var(--orange); border: 1px solid rgba(245,158,11,0.3); }
+.badge-approved { background: var(--green-bg); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+.badge-rejected { background: var(--red-bg); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+.badge-pending-del { background: var(--purple-bg); color: var(--purple); border: 1px solid rgba(139,92,246,0.3); }
+.badge-scrap { background: var(--orange-bg); color: var(--orange); border: 1px solid rgba(245,158,11,0.3); }
+.badge-return { background: var(--teal-bg); color: var(--teal); border: 1px solid rgba(20,184,166,0.3); }
+
+/* ADD ROW BTN */
+.add-row-btn { width: 100%; padding: 10px; background: transparent; border: none; border-top: 1px solid var(--border);
+  color: var(--text3); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  gap: 6px; font-family: var(--font); font-size: 12px; transition: all 0.2s; }
+.add-row-btn:hover { background: var(--accent-glow); color: var(--accent-light); }
+.add-row-btn svg { width: 14px; height: 14px; }
+
+/* TRANSFER BUTTONS BAR (above table, admin only) */
+.transfer-bar { display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+  background: var(--surface2); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.transfer-bar-label { font-size: 11px; color: var(--text3); font-weight: 600; letter-spacing: 0.5px;
+  text-transform: uppercase; margin-right: 4px; }
+
+/* ACTION BAR */
+.action-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(22,27,34,0.97);
+  border-top: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center;
+  justify-content: space-between; gap: 10px; z-index: 90; backdrop-filter: blur(10px); }
+.action-bar .sel-info { font-size: 12px; color: var(--text3); }
+.action-bar .btn-group { display: flex; gap: 6px; }
+.btn-save { padding: 8px 20px; background: var(--accent); border: 1px solid var(--accent); border-radius: var(--radius);
+  color: #fff; font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-save:hover { background: var(--accent2); }
+.btn-del { padding: 8px 16px; background: transparent; border: 1px solid rgba(239,68,68,0.4);
+  border-radius: var(--radius); color: var(--red); font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-del:hover { background: var(--red-bg); }
+
+/* Checkbox */
+.cb-cell { width: 32px; text-align: center; }
+.row-cb { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
+
+/* SECTION CARD */
+.section-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius2);
+  padding: 14px 16px; margin-bottom: 16px; }
+
+/* DROPDOWN SELECT */
+.select-material { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 8px 12px; color: var(--text); font-family: var(--font); font-size: 13px; outline: none;
+  cursor: pointer; min-width: 300px; max-width: 100%; transition: border-color 0.2s; }
+.select-material:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.select-material option { background: var(--surface2); }
+
+/* STOCK SUMMARY */
+.stock-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; font-size: 12px; color: var(--text2); }
+.stock-pill .val { font-family: var(--mono); font-weight: 700; color: var(--accent-light); }
+.stock-pill-mt { border-color: rgba(59,130,246,0.4); }
+.stock-pill-sc { border-color: rgba(245,158,11,0.4); }
+.stock-pill-mt .val { color: var(--accent-light); }
+.stock-pill-sc .val { color: var(--orange); }
+
+/* NOTIFICATION */
+.notif-panel { position: fixed; top: 52px; right: 0; width: 340px; max-height: calc(100vh - 52px);
+  background: var(--surface); border-left: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  overflow-y: auto; z-index: 200; transform: translateX(100%); transition: transform 0.25s ease;
+  box-shadow: -10px 0 30px rgba(0,0,0,0.4); }
+.notif-panel.open { transform: translateX(0); }
+.notif-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.notif-header h3 { font-size: 13px; font-weight: 600; }
+.notif-item { padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
+.notif-item:hover { background: var(--surface2); }
+.notif-item.unread { border-left: 3px solid var(--accent); }
+.notif-item h4 { font-size: 12px; font-weight: 600; margin-bottom: 3px; }
+.notif-item p { font-size: 11px; color: var(--text3); }
+.notif-item .notif-time { font-size: 10px; color: var(--text3); margin-top: 4px; font-family: var(--mono); }
+.notif-empty { padding: 32px; text-align: center; color: var(--text3); font-size: 12px; }
+
+/* ESTIMATE */
+.est-value { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--accent-light); }
+.onhand-pos { color: var(--green); font-family: var(--mono); }
+.onhand-neg { color: var(--red); font-family: var(--mono); }
+.calc-cell { font-family: var(--mono); font-size: 12px; font-weight: 600; }
+
+/* TOAST */
+.toast-wrap { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 999;
+  display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+.toast { padding: 10px 18px; border-radius: var(--radius); font-size: 13px; font-weight: 500; color: #fff;
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 2.5s forwards; white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+.toast-success { background: #059669; }
+.toast-error { background: #dc2626; }
+.toast-info { background: var(--accent); }
+@keyframes toastIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes toastOut { from{opacity:1} to{opacity:0} }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500;
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius2);
+  padding: 24px; width: 400px; max-width: 100%; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+  transform: scale(0.95); transition: transform 0.2s; }
+.modal-overlay.open .modal-box { transform: scale(1); }
+.modal-box h3 { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+.modal-box p { font-size: 13px; color: var(--text2); margin-bottom: 20px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+.logo-mark { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+  border-radius: 7px; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 800; color: #fff; letter-spacing: -0.5px; flex-shrink: 0; }
+
+.has-action-bar { padding-bottom: 70px; }
+
+thead th { position: sticky; top: 0; z-index: 10; }
+
+@media (max-width: 768px) {
+  .topnav { padding: 0 10px; }
+  .content-full { padding: 10px; }
+  .login-card { padding: 28px 20px; }
+  .nav-subtitle { display: none; }
+  .notif-panel { width: 100%; }
+  .select-material { min-width: 0; width: 100%; }
+  .size-pair input { width: 55px !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- FIREBASE LOADING SCREEN -->
+<div id="fbLoadingScreen" style="
+  position:fixed;inset:0;z-index:9999;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+  <div class="logo-mark" style="width:48px;height:48px;font-size:16px;animation:pulse 1.5s ease infinite;">PPS</div>
+  <div style="font-size:14px;font-weight:600;color:var(--text);" id="fbLoadMsg">กำลังเชื่อมต่อ Firebase...</div>
+  <div style="font-size:12px;color:var(--text3);" id="fbLoadSub">รอสักครู่</div>
+  <div id="fbLoadErr" style="display:none;margin-top:8px;padding:14px 20px;background:var(--red-bg);border:1px solid rgba(239,68,68,0.3);border-radius:8px;color:var(--red);font-size:13px;text-align:center;max-width:340px;line-height:1.6;">
+    ⚠️ เชื่อมต่อไม่ได้<br>
+    <span style="font-size:11px;color:var(--text3);">กรุณาตรวจสอบ Internet แล้วกดลองใหม่<br>หรือตั้งค่า Firebase Rules ให้อนุญาต read/write</span>
+    <br><br>
+    <button onclick="location.reload()" style="padding:7px 20px;background:var(--accent);border:none;border-radius:6px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">🔄 ลองใหม่</button>
+  </div>
+</div>
+<style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}</style>
+
+<!-- PAGE 1: LOGIN -->
+<div id="loginPage" class="page active">
+  <div class="login-card">
+    <div class="login-brand">
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;">
+        <div class="logo-mark">PPS</div>
+        <div style="text-align:left;">
+          <div class="tag">Manufacturing</div>
+          <div style="font-size:18px;font-weight:700;letter-spacing:-0.5px;">563 System</div>
+        </div>
+      </div>
+      <div class="divider-line"></div>
+      <p>Metal Sheet Stock Management</p>
+    </div>
+    <div class="form-group">
+      <label>User ID</label>
+      <input type="text" id="loginId" placeholder="กรอก ID..." autocomplete="username"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPw" placeholder="กรอก Password..." autocomplete="current-password"/>
+    </div>
+    <button class="btn-login" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div class="error-msg" id="loginErr">⚠️ คุณใส่รหัสมั่ว !</div>
+  </div>
+</div>
+
+<!-- PAGE 2: รายการเบิก -->
+<div id="page2" class="page">
+  <div class="topnav">
+    <div class="nav-left">
+      <div class="logo-mark">PPS</div>
+      <div>
+        <div class="nav-title">รายการเบิกวัตถุดิบ</div>
+        <div class="nav-subtitle">BOM vs Actual</div>
+      </div>
+    </div>
+    <div class="nav-center"></div>
+    <div class="nav-right">
+      <div id="p2ApproveBtn" style="display:none;align-items:center;gap:4px;">
+        <button class="btn-sm btn-success-outline" onclick="bulkApprove(2,true)">✓ อนุมัติ</button>
+        <button class="btn-sm btn-danger-outline" onclick="bulkApprove(2,false)">✗ ไม่อนุมัติ</button>
+      </div>
+      <button class="btn-sm btn-outline" onclick="goToPage(3)" style="font-weight:700;">Stock →</button>
+      <button class="btn-sm btn-outline" onclick="goToPage(4)" style="font-weight:700;">On-Hand →</button>
+      <button class="btn-export" onclick="exportP2Excel()" title="Export Excel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Export Excel
+      </button>
+      <div class="notif-wrap">
+        <button class="btn-icon" onclick="toggleNotif()">✉</button>
+        <div class="notif-badge" id="notifBadge2"></div>
+      </div>
+      <button class="btn-icon" id="voiceNavBtn2" onclick="toggleVoice()" title="สั่งงานด้วยเสียง 🎙️" style="font-size:16px;">🎙️</button>
+      <button class="btn-icon" onclick="showLogoutConfirm()">⏻</button>
+    </div>
+  </div>
+  <div class="content-full has-action-bar">
+    <div class="table-wrap">
+      <table id="p2Table">
+        <thead>
+          <tr>
+            <th class="cb-cell"></th>
+            <th>วันที่</th><th>PD</th><th>แบบ</th><th>Qty.</th>
+            <th style="min-width:340px;">ชื่อวัตถุดิบ</th>
+            <th>BOM</th><th>Reuse</th>
+            <th>PD ที่นำมา Reuse</th>
+            <th>BOMใช้งาน</th>
+            <th>จำนวนเบิก</th>
+            <th>จำนวนที่ได้รับ</th>
+            <th>On-hand</th>
+            <th>ขอดำเนินการ</th>
+            <th>ผู้ทำรายการ</th><th>สถานะ</th>
+          </tr>
+          <tr class="search-row">
+            <td></td>
+            <td><input type="text" id="s2Date" placeholder="ค้นหา..." oninput="filterP2()"></td>
+            <td><input type="text" id="s2PD" placeholder="ค้นหา..." oninput="filterP2()"></td>
+            <td><input type="text" id="s2Model" placeholder="ค้นหา..." oninput="filterP2()"></td>
+            <td></td>
+            <td><input type="text" id="s2Mat" placeholder="ค้นหา..." oninput="filterP2()"></td>
+            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+          </tr>
+        </thead>
+        <tbody id="p2Body"></tbody>
+      </table>
+      <button class="add-row-btn" onclick="addP2Row()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        เพิ่มรายการ
+      </button>
+    </div>
+  </div>
+  <div class="action-bar">
+    <div class="sel-info" id="p2SelInfo">เลือกแถวเพื่อดำเนินการ</div>
+    <div class="btn-group">
+      <button class="btn-del" onclick="deleteSelectedP2()">🗑 ลบที่เลือก</button>
+      <button class="btn-save" onclick="saveP2Rows()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 3: STOCK -->
+<div id="page3" class="page">
+  <div class="topnav">
+    <div class="nav-left">
+      <button class="btn-icon" onclick="goToPage(2)">←</button>
+      <div>
+        <div class="nav-title">จัดการ Stock เศษโลหะ</div>
+        <div class="nav-subtitle">Metal Sheet Remnant</div>
+      </div>
+    </div>
+    <div class="nav-center"></div>
+    <div class="nav-right">
+      <div id="p3ApproveBtn" style="display:none;align-items:center;gap:4px;">
+        <button class="btn-sm btn-success-outline" onclick="bulkApprove(3,true)">✓ อนุมัติ</button>
+        <button class="btn-sm btn-danger-outline" onclick="bulkApprove(3,false)">✗ ไม่อนุมัติ</button>
+      </div>
+      <button class="btn-sm btn-outline" onclick="goToPage(2)">← รายการเบิก</button>
+      <button class="btn-sm btn-outline" onclick="goToPage(4)" style="font-weight:700;">On-Hand →</button>
+      <button class="btn-export" onclick="exportP3Excel()" title="Export Excel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Export Excel
+      </button>
+      <div class="notif-wrap">
+        <button class="btn-icon" onclick="toggleNotif()">✉</button>
+        <div class="notif-badge" id="notifBadge3"></div>
+      </div>
+      <button class="btn-icon" id="voiceNavBtn3" onclick="toggleVoice()" title="สั่งงานด้วยเสียง 🎙️" style="font-size:16px;">🎙️</button>
+      <button class="btn-icon" onclick="showLogoutConfirm()">⏻</button>
+    </div>
+  </div>
+  <div class="content-full has-action-bar">
+    <div class="section-card" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <label style="font-size:12px;font-weight:600;color:var(--text2);white-space:nowrap;">วัตถุดิบ:</label>
+        <select class="select-material" id="stockMatSelect" onchange="loadStockTable()">
+          <option value="">-- เลือกวัตถุดิบ --</option>
+        </select>
+        <div class="stock-pill stock-pill-mt" id="stockPillMT" style="display:none;">
+          PD-MTsheet: <span class="val" id="stockMT">0.0000</span> แผ่น
+        </div>
+        <div class="stock-pill" id="stockPillMTPcs" style="display:none;border-color:rgba(139,92,246,0.4);">
+          PD-MTsheet: <span class="val" id="stockMTPcs" style="color:var(--purple);">0.0000</span> pcs.
+        </div>
+        <div class="stock-pill stock-pill-sc" id="stockPillSC" style="display:none;">
+          PD-Scrap: <span class="val" id="stockSC">0.0000</span> แผ่น
+        </div>
+      </div>
+    </div>
+    <div id="stockTableWrap" style="display:none;">
+      <div class="table-wrap">
+        <!-- Admin transfer buttons bar -->
+        <div class="transfer-bar" id="transferBar" style="display:none;">
+          <span class="transfer-bar-label">Admin:</span>
+          <button class="btn-scrap" onclick="addP3TransferRow('scrap')">📦 โอนทิ้ง PD-Scrap</button>
+          <button class="btn-return" onclick="addP3TransferRow('return')">♻️ โอนกลับ PD-MTsheet</button>
+        </div>
+        <table id="p3Table">
+          <thead>
+            <tr>
+              <th class="cb-cell"></th>
+              <th>วันที่</th>
+              <th>ขอดำเนินการ</th>
+              <th>PD</th>
+              <th style="min-width:150px;">ขนาด กว้าง × ยาว (mm)</th>
+              <th>ยอด Estimate (แผ่น)</th>
+              <th>ยอด Estimate (pcs.)</th>
+              <th>PD ที่ Reuse</th>
+              <th>ยอด ESTIMATE PD-MTsheet</th>
+              <th>ยอด ESTIMATE PD-MTsheet (Pcs.)</th>
+              <th>ยอด ESTIMATE PD-Scrap</th>
+              <th>ผู้ทำรายการ</th>
+              <th>หมายเหตุ</th>
+              <th>สถานะ</th>
+            </tr>
+          </thead>
+          <tbody id="p3Body"></tbody>
+        </table>
+        <button class="add-row-btn" onclick="addP3Row()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          เพิ่มรายการ
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="action-bar">
+    <div class="sel-info" id="p3SelInfo">เลือกแถวเพื่อดำเนินการ</div>
+    <div class="btn-group">
+      <button class="btn-del" onclick="deleteSelectedP3()">🗑 ลบที่เลือก</button>
+      <button class="btn-save" onclick="saveP3Rows()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 4: ON-HAND LIST -->
+<div id="page4" class="page">
+  <div class="topnav">
+    <div class="nav-left">
+      <button class="btn-icon" onclick="goToPage(3)">←</button>
+      <div>
+        <div class="nav-title">On-Hand List</div>
+        <div class="nav-subtitle">ยอดคงเหลือทุกวัตถุดิบ</div>
+      </div>
+    </div>
+    <div class="nav-center"></div>
+    <div class="nav-right">
+      <button class="btn-sm btn-outline" onclick="goToPage(2)">รายการเบิก</button>
+      <button class="btn-sm btn-outline" onclick="goToPage(3)">Stock</button>
+      <button class="btn-export" onclick="exportP4Excel()" title="Export Excel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Export Excel
+      </button>
+      <div class="notif-wrap">
+        <button class="btn-icon" onclick="toggleNotif()">✉</button>
+        <div class="notif-badge" id="notifBadge4"></div>
+      </div>
+      <button class="btn-icon" id="voiceNavBtn4" onclick="toggleVoice()" title="สั่งงานด้วยเสียง 🎙️" style="font-size:16px;">🎙️</button>
+      <button class="btn-icon" onclick="showLogoutConfirm()">⏻</button>
+    </div>
+  </div>
+
+  <div class="content-full">
+    <!-- Summary cards -->
+    <div id="p4SummaryCards" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;"></div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table id="p4Table">
+        <thead>
+          <tr>
+            <th style="width:36px;">#</th>
+            <th style="min-width:24px;">รหัสวัตถุดิบ</th>
+            <th style="min-width:260px;">ชื่อวัตถุดิบ</th>
+            <th style="min-width:140px;text-align:right;">Estimate PD-MTsheet (แผ่น)</th>
+            <th style="min-width:140px;text-align:right;">Estimate PD-MTsheet (Pcs.)</th>
+            <th style="min-width:120px;text-align:right;">PD-Scrap</th>
+            <th style="min-width:80px;text-align:center;">สถานะ</th>
+          </tr>
+        </thead>
+        <tbody id="p4Body"></tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:10px;font-size:11px;color:var(--text3);">
+      * ยอดคำนวณจากรายการที่ <strong style="color:var(--green);">อนุมัติแล้ว</strong> เท่านั้น | รายการวัตถุดิบทั้งหมด 120 รายการ | อัปเดตทุกครั้งที่เข้าหน้านี้
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION PANEL -->
+<div class="notif-panel" id="notifPanel">
+  <div class="notif-header">
+    <h3>📬 การแจ้งเตือน</h3>
+    <button class="btn-icon" onclick="toggleNotif()" style="width:26px;height:26px;font-size:12px;">✕</button>
+  </div>
+  <div id="notifList"></div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <h3 id="modalTitle">ยืนยัน</h3>
+    <p id="modalMsg">คุณแน่ใจหรือไม่?</p>
+    <div class="modal-actions">
+      <button class="btn-sm btn-outline" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn-sm btn-primary" id="modalConfirmBtn">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+// ==================== FIREBASE SETUP ====================
+import { initializeApp }                        from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getDatabase, ref, set, onValue,
+         remove, update, push }                 from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyBqcw9KNK24IBwS_9RGod8y87K3qJlnZnk",
+  authDomain:        "pps563-stock.firebaseapp.com",
+  databaseURL:       "https://pps563-stock-default-rtdb.firebaseio.com",
+  projectId:         "pps563-stock",
+  storageBucket:     "pps563-stock.firebasestorage.app",
+  messagingSenderId: "473353019755",
+  appId:             "1:473353019755:web:b7ebcb07819477eb2eec2e"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db    = getDatabase(fbApp);
+
+// ==================== DATA ====================
+const USERS = {
+  adminpps: { pw: '161', name: 'Admin PPS', isAdmin: true },
+  laser1:   { pw: '111', name: 'Laser 1', isAdmin: false },
+  laser2:   { pw: '222', name: 'Laser 2', isAdmin: false },
+  '31008':  { pw: 'a123', name: '31008', isAdmin: false }
+};
+
+const MATERIALS = [
+  { code:'RMM3A-12X122244AX', name:"Aluminium Sheet 1100, H14 Thk. 1.2 mm.x 4' x 8' (#18)", w:1220, l:2440 },
+  { code:'RMM3A-12X122305AX', name:"Aluminium Sheet 1100, H22 Thk. 1.2 mm.x 4' x 10' (#18)", w:1220, l:3050 },
+  { code:'RMM3A-15X122244AX', name:"Aluminium Sheet 1100, H14 Thk. 1.5 mm.x 4' x 8' (#16)", w:1220, l:2440 },
+  { code:'RMM3A-15X150305AX', name:"Aluminium Sheet 1100, H14 Thk. 1.5 mm.x 5' x 10' (#16)", w:1500, l:3050 },
+  { code:'RMM3A-2XX122244AX', name:"Aluminium Sheet 1100, H14 Thk. 2 mm.x 4' x 8' (#14)", w:1220, l:2440 },
+  { code:'RMM3A-2XX150305AX', name:"Aluminium Sheet 1100, H14 Thk. 2 mm.x 5' x 10' (#14)", w:1500, l:3050 },
+  { code:'RMM3A-3XX122244AX', name:"Aluminium Sheet 1100, H14 Thk. 3 mm.x 4' x 8' (#11)", w:1220, l:2440 },
+  { code:'RMM3A-X9X122244AX', name:"Aluminium Sheet 1100, H14 Thk. 0.9 mm.x 4' x 8' (#20)", w:1220, l:2440 },
+  { code:'RMM3C-15X122061AX', name:"แผ่นทองแดงเรียบ หนา 1.5 มม. x 4' x 2' (#16)(แผ่นตัด)", w:1220, l:610 },
+  { code:'RMM3C-1XX122061AX', name:"แผ่นทองแดงเรียบ หนา 1 มม. x 4' x 2' (#19)(แผ่นตัด)", w:1220, l:610 },
+  { code:'RMM3C-2XX122244AX', name:"แผ่นทองแดงเรียบ หนา 2 มม. x 4' x 8' (#14)", w:1220, l:2440 },
+  { code:'RMM3G-12X122244AB', name:"แผ่นเหล็กชุบสังกะสีไม่มีลายหนา1.2มม.4'x 8'(#18) 0 Spangle", w:1220, l:2440 },
+  { code:'RMM3G-16X122244AB', name:"แผ่นเหล็กชุบสังกะสีไม่มีลายหนา1.6มม.4'x 8'(#16) 0 Spangle", w:1220, l:2440 },
+  { code:'RMM3G-16X122305AB', name:"แผ่นเหล็กชุบสังกะสีไม่มีลายหนา1.6มม.4'x10'(#16) 0 Spangle", w:1220, l:3050 },
+  { code:'RMM3G-2XX122244AB', name:"แผ่นเหล็กชุบสังกะสีไม่มีลาย หนา2มม.4'x 8'(#14) 0 Spangle", w:1220, l:2440 },
+  { code:'RMM3G-3XX122244AB', name:"แผ่นเหล็กชุบสังกะสีไม่มีลาย หนา3มม.4'x 8'(#11) 0 Spangle", w:1220, l:2440 },
+  { code:'RMM3G-X5X122244AB', name:"แผ่นเหล็กชุบสังกะสีไม่มีลาย หนา0.5มม.4'x 8'(#25) 0 Spangle", w:1220, l:2440 },
+  { code:'RMM3G-X9X122244AB', name:"แผ่นเหล็กชุบสังกะสีไม่มีลายหนา0.9มม.4'x 8'(#20) 0 Spangle", w:1220, l:2440 },
+  { code:'RMM3H-5XX122244AX', name:"แผ่นเหล็กดำ หนา 5 มม.x 4' x 8'", w:1220, l:2440 },
+  { code:'RMM3S-12X122244AC', name:"แผ่นสเตนเลส หนา 1.2 มม. x 4' x 8' (#18) (เกรด304) (2B)", w:1220, l:2440 },
+  { code:'RMM3S-12X122244AE', name:"แผ่นสเตนเลส หนา 1.2 มม. x 4' x 8' (#18)(เกรด304) (Hairline)", w:1220, l:2440 },
+  { code:'RMM3S-12X122305AC', name:"แผ่นสเตนเลส หนา 1.2 มม. x 4' x 10' (#18) (เกรด304) (2B)", w:1220, l:3050 },
+  { code:'RMM3S-15X122244AC', name:"แผ่นสเตนเลส หนา 1.5 มม. x 4' x 8' (#16) (เกรด304) (2B)", w:1220, l:2440 },
+  { code:'RMM3S-15X122244AD', name:"แผ่นสเตนเลส หนา 1.5 มม. x 4' x 8' (#16) (เกรด316L) (2B)", w:1220, l:2440 },
+  { code:'RMM3S-15X122244AE', name:"แผ่นสเตนเลส หนา 1.5 มม. x 4' x 8' (เกรด304) (Hairline)", w:1220, l:2440 },
+  { code:'RMM3S-15X122305AC', name:"แผ่นสเตนเลส หนา 1.5 มม. x 4' x 10' (#16) (เกรด304) (2B)", w:1220, l:3050 },
+  { code:'RMM3S-15X150305AE', name:"แผ่นสเตนเลส หนา 1.5 มม. x 5' x 10' (เกรด304) (Hairline)", w:1500, l:3050 },
+  { code:'RMM3S-1XX122244AE', name:"แผ่นสเตนเลส หนา 1.0 มม. x 4' x 8' (#20) (เกรด304) (Hairline)", w:1220, l:2440 },
+  { code:'RMM3S-2XX122244AC', name:"แผ่นสเตนเลส หนา 2 มม. x 4' x 8' (#14) (เกรด304) (2B)", w:1220, l:2440 },
+  { code:'RMM3S-3XX122244AE', name:"แผ่นสเตนเลส หนา 3 (2.7) มม. x 4' x 8' (#11) 304 (Hairline)", w:1220, l:2440 },
+  { code:'RMM3W-X6X122244AX', name:"แผ่นเหล็กขาว หนา0.6 มม.x 4'x 8", w:1220, l:2440 },
+  // ========== รายการเพิ่มเติม ==========
+  { code:'CP-FWBXX8-XXX006AA', name:'รีเวท Nut (Hexatop) M6 A2 (สเตนเลส) Roller', w:0, l:0 },
+  { code:'SMPPLATEXEN5004', name:'semi plate EN-5004', w:0, l:0 },
+  { code:'SSBD-X3XXX04XX100XX1', name:'SCWหัวร่มผ่าแฉก M4 x 0.7 x 10 มม. YZ', w:0, l:0 },
+  { code:'SSBF-X4XX158XX635XX1', name:'SCW5/8" x 11T x 2 1/2" NC', w:0, l:0 },
+  { code:'SSBX-X2XXX04XXX20XX1', name:'Clinching Stud M4x0.7x20mm (FH-M4-20)(ชุบขาว)', w:0, l:0 },
+  { code:'SSNA-X1XXX04XXXX7XX1', name:'Nut Spot M4 x 0.7 (สเตนเลส) (ขนาด 8x8x3.20 มม.)', w:0, l:0 },
+  { code:'SSNA-X1XXX05XXXX8XX1', name:'Nut Spot M5 x 0.8 (สเตนเลส) (ขนาด 9x9x4 มม.)', w:0, l:0 },
+  { code:'SSNA-X1XXX06XXX10XX1', name:'Nut Spot M6 x 1  (สเตนเลส) (ขนาด10x10x5 มม.)', w:0, l:0 },
+  { code:'SSNA-X1XXX08XXX12XX1', name:'Nut Spot M8 x 1.25 (สเตนเลส) (ขนาด12x12x6 มม.)', w:0, l:0 },
+  { code:'SSNA-X1XXX10XXX15XX1', name:'Nut Spot M10 x 1.5 (สเตนเลส) (ขนาด14x14x8 มม.)', w:0, l:0 },
+  { code:'SSNA-X3XXX04XXXX7XX1', name:'Nut Spot M4 x 0.7 (ขนาด 8x8x3 มม.)', w:0, l:0 },
+  { code:'SSNA-X3XXX05XXXX8XX1', name:'Nut Spot M5 x 0.8 (ขนาด 9x9x4 มม.)', w:0, l:0 },
+  { code:'SSNA-X3XXX06XXX10XX1', name:'Nut Spot M6 x 1 (ขนาด 10x10x5 มม.)', w:0, l:0 },
+  { code:'SSNA-X3XXX08XXX12XX1', name:'Nut Spot M8 x 1.25 (ขนาด 12x12x5.5 มม.)', w:0, l:0 },
+  { code:'SSNA-X3XXX10XXX15XX1', name:'Nut Spot M10 x 1.5 (ขนาด 14x14x8 มม.)', w:0, l:0 },
+  { code:'SSNA-X3XXX12XXX12XX1', name:'Nut Spot M12 x 1.25 (ขนาด17x17x8(9) มม.)', w:0, l:0 },
+  { code:'SSNA-X3XXX12XXX17XX1', name:'Nut Spot M12 x 1.75 (ขนาด17x17x8 มม.)', w:0, l:0 },
+  { code:'SSNB-X1XXX04XXXXXXX1', name:'รีเวท Nut BEM-4   (สเตนเลส) หัวแบน มีลาย', w:0, l:0 },
+  { code:'SSNB-X1XXX04XXXXXXX2', name:'รีเวท Nut HEX M4 (สแตนเลส)หัวเตเปอร์ - คอเหลี่ยม', w:0, l:0 },
+  { code:'SSNB-X1XXX04XXXXXXX3', name:'รีเวท Nut SEM-4 (สแตนเลส) หัวเตเปอร์ มีลาย', w:0, l:0 },
+  { code:'SSNB-X1XXX05XXXXXXX1', name:'รีเวท Nut BEM-5   (สเตนเลส) หัวแบน มีลาย', w:0, l:0 },
+  { code:'SSNB-X1XXX06XXX10XX1', name:'รีเวท Nut SEM-6 x 1 (สเตนเลส) หัวเตเปอร์มีลาย', w:0, l:0 },
+  { code:'SSNB-X1XXX06XXXXXXX1', name:'รีเวท Nut BEM-6(DHF-630) (สเตนเลส) (หัวแบน-คอเหลี่ยม)', w:0, l:0 },
+  { code:'SSNB-X1XXX06XXXXXXX2', name:'รีเวท Nut HEX M6 (สแตนเลส)หัวเตเปอร์ - คอเหลี่ยม', w:0, l:0 },
+  { code:'SSNB-X1XXX08XXX12XX1', name:'รีเวท Nut BEM-8 x 1.25 (สเตนเลส)', w:0, l:0 },
+  { code:'SSNB-X1XXX08XXX12XX2', name:'รีเวท Nut BEM-8 x 1.25 (สเตนเลส) หัวแบน/คอเหลี่ยม', w:0, l:0 },
+  { code:'SSNB-X1XXX08XXX12XX3', name:'รีเวท Nut HEX M8x1.25 (สแตนเลส)หัวเตเปอร์ - คอเหลี่ยม', w:0, l:0 },
+  { code:'SSNB-X1XXX10XXX15XX1', name:'รีเวท Nut BEM-10 x 1.5 (สเตนเลส) หัวแบน มีลาย', w:0, l:0 },
+  { code:'SSNB-X3XXX04XXXX7XX1', name:'รีเวท Nut BEM-4 x 0.7 (ชุบรุ้ง)', w:0, l:0 },
+  { code:'SSNB-X3XXX04XXXXXXX1', name:'รีเวท Nut SEM-4   (ชุบรุ้ง) หัวเตเปอร์ไม่มีลาย', w:0, l:0 },
+  { code:'SSNB-X3XXX05XXXX8XX1', name:'รีเวท Nut BEM-5 x 0.8  (ชุบรุ้ง)', w:0, l:0 },
+  { code:'SSNB-X3XXX06XXX10XX1', name:'รีเวท Nut BEM-6 x 1  (ชุบรุ้ง) หัวแบนไม่มีลาย', w:0, l:0 },
+  { code:'SSNB-X3XXX08XXX12XX1', name:'รีเวท Nut BEM-8 x 1.25 (ชุบรุ้ง)', w:0, l:0 },
+  { code:'SSNB-X6XXX06XXX10XX1', name:'รีเวท Nut BEM-6 x 1 x 15.11 มม.  (ALU.)', w:0, l:0 },
+  { code:'SSNB-X6XXX06XXX10XX2', name:'รีเวท Nut BEM-6 x 1 x 16.5 มม.  (ALU.)', w:0, l:0 },
+  { code:'SSNC-X5XX158XXX11XX1', name:'หัวน็อตตัวเมีย 5/8" x 11T (NC )', w:0, l:0 },
+  { code:'SSRA-X1XXX47XX127XX1', name:'รีเวทขนาด 3/16"x 1/2" ( SS )', w:0, l:0 },
+  { code:'SSRA-X1XXX47XXX95XX1', name:'รีเวทขนาด 3/16"x 3/8" ( SS ) (#6-3)', w:0, l:0 },
+  { code:'SSRA-X6XXX31XXX63XX1', name:'รีเวทขนาด 1/8"x 1/4" (ALU)', w:0, l:0 },
+  { code:'SSRA-X6XXX31XXX95XX1', name:'รีเวทขนาด 1/8"x 3/8" (ALU)', w:0, l:0 },
+  { code:'SSRA-X6XXX47XX127XX1', name:'รีเวทขนาด 3/16"x 1/2" (ALU)', w:0, l:0 },
+  { code:'SSRA-X6XXX47XXX95XX1', name:'รีเวทขนาด 3/16"x 3/8" (ALU)', w:0, l:0 },
+  { code:'SSWA-X2XXX16XX320XX1', name:'แหวนอีแปะ M16 x OD 32 มม. (ชุบขาว)', w:0, l:0 },
+  { code:'PGSH-X3X1270XXXXXXXX', name:'ฝาปิดรีซีฟเวอร์ ขนาด 5"', w:0, l:0 },
+  { code:'PGSH-X3X2032XXXXXXXX', name:'ฝาปิดรีซีฟเวอร์ ขนาด 8"', w:0, l:0 },
+  { code:'RASQ-X1XXXXXXXXXXXX1', name:'ลวดเชื่อม KOBE MG-51Tขนาด1.2มม.', w:0, l:0 },
+  { code:'RASQ-X3XXXXXXXXXXXX1', name:'ลวดเชื่อมไฟฟ้า KOBE STEEL  RB-26. 2.6 มม.', w:0, l:0 },
+  { code:'RASQ-X3XXXXXXXXXXXX2', name:'ลวดเชื่อมไฟฟ้า KOBE STEEL  RB-26. 3.2 มม.', w:0, l:0 },
+  { code:'RASQ-X6XXXXXXXXXXXX2', name:'ลวดเงินเชื่อม 2% (2.2ปอนด์/kg) (2.4 x 500 mm.)', w:0, l:0 },
+  { code:'RASQ-X7XXXXXXXXXXXX2', name:'ก้านเชื่อมทังสเตน ขนาด 1.6 มม.หัวสีแดง POWELD', w:0, l:0 },
+  { code:'RBM4AH-X7620XXX-A', name:'เพลาทองเหลืองหกเหลี่ยม ขนาด 3"', w:0, l:0 },
+  { code:'RBM4DB-X2540400-A', name:'เหล็กเพลากลม SS400 ขนาด 1"x 6 ม.', w:0, l:0 },
+  { code:'RBM4DB-X6350600-A', name:'เหล็กเพลากลม SS400 ขนาด 2 1/2" x 6 ม.', w:0, l:0 },
+  { code:'RPM2H-1016600-C-A', name:'ท่อเหล็กดำ 4" (ASTM A53 SCH40 SMLS Gr.B)', w:0, l:0 },
+  { code:'RPM2H-1270600-C-A', name:'ท่อเหล็กดำ 5" (ASTM A53 SCH40 SMLS Gr.B)', w:0, l:0 },
+  { code:'RPM2H-X127600-A-A', name:'ท่อเหล็กดำ 1/2" x 2.0 มม. (ASTM A53 SCH40 Grade A)', w:0, l:0 },
+  { code:'RPM2H-X190600-A-A', name:'ท่อเหล็กดำ 3/4" x 2.87 มม. (ASTM A53 SCH40 Grade A)', w:0, l:0 },
+  { code:'RPM2H-X190600-C-A', name:'ท่อเหล็กดำ 3/4" (ASTM A53 SCH40 SMLS Gr.B)', w:0, l:0 },
+  { code:'RPM2H-X254600-B-A', name:'ท่อเหล็กดำ 1" (ASTM A53 SCH40)', w:0, l:0 },
+  { code:'RPM2H-X254600-D-A', name:'ท่อเหล็กดำ 1" (ASTM A53 SCH80 SMLS Gr.B)', w:0, l:0 },
+  { code:'RPM2H-X381600-B-A', name:'ท่อเหล็กดำ 1-1/2" (ASTM A53 SCH40)', w:0, l:0 },
+  { code:'RPM2H-X381600-D-A', name:'ท่อเหล็กดำ 1-1/2" (ASTM A53 SCH80 SMLS Gr.B)', w:0, l:0 },
+  { code:'RPM2H-X635600-C-A', name:'ท่อเหล็กดำ 2-1/2" (ASTM A53 SCH40 SMLS Gr.B)', w:0, l:0 },
+  { code:'RPM2H-X762600-A-A', name:'ท่อเหล็กดำ  3" x 4.0 มม. (ASTM A53 SCH40 Grade A)', w:0, l:0 },
+  { code:'RPM2H-X762600-C-A', name:'ท่อเหล็กดำ 3" (ASTM A53 SCH40 SMLS Gr.B)', w:0, l:0 },
+  { code:'RPM2K-2540600-A-A', name:'ท่อเหล็กดำชุบกัลวาไนซ์ 10" (ASTM A53 SCH40)', w:0, l:0 },
+  { code:'RPM2K-X016600-A-A', name:'ท่อเหล็กดำชุบกัลวาไนซ์ 4" (ASTM A53 SCH40)', w:0, l:0 },
+  { code:'RPM2K-X127600-A-A', name:'ท่อเหล็กดำชุบกัลวาไนซ์ 5" (ASTM A53 SCH40)', w:0, l:0 },
+  { code:'RPM2K-X152600-A-A', name:'ท่อเหล็กดำชุบกัลวาไนซ์ 6" (ASTM A53 SCH40)', w:0, l:0 },
+  { code:'RPM2K-X508600-A-A', name:'ท่อเหล็กดำชุบกัลวาไนซ์ 2" (ASTM A53 SCH40)', w:0, l:0 },
+  { code:'RPM2K-X762600-A-A', name:'ท่อเหล็กดำชุบกัลวาไนซ์ 3" (ASTM A53 SCH40)', w:0, l:0 },
+  { code:'SSBX-X1XXX10X1000XX1', name:'สตัด M10 x 1.5 x1000 มม.(เกลียวตลอด) (สเตนเลส)', w:0, l:0 },
+  { code:'SSSR-X1XXXXXXXXXXXX1', name:'ปะเก็นยางธรรมดา  หนา 1 มม. x 1 ม. x 10ม.', w:0, l:0 },
+  { code:'TMM5DB-X1000X18-A', name:'เหล็กกล่อง ขนาด 100 x 100 x หนา 1.8 มม. x 6 ม.', w:0, l:0 },
+  { code:'TMM5DB-X1000X45-A', name:'เหล็กกล่อง ขนาด 100 x 100 x หนา 4.5 มม. x 6 ม.', w:0, l:0 },
+  { code:'TMM5DB-XX750X50-A', name:'เหล็กกล่อง ขนาด 75 x 75 x หนา 5 มม. x 6 ม.', w:0, l:0 },
+  { code:'TMM5DC-XX750X20-A', name:'เหล็กตัวซี ขนาด 75 x 45  x หนา 2 มม.', w:0, l:0 },
+  { code:'TMM5DC-XX750X30-A', name:'เหล็กตัวซี ขนาด 75 x 45  x หนา 3 มม.', w:0, l:0 },
+  { code:'TMM5DF-X1250X45-A', name:'เหล็กแฟลทบาร์ ขนาด 125 x 4.5 มม. x 6 ม.', w:0, l:0 },
+  { code:'TMM5DF-XX317X60-A', name:'เหล็กแฟลทบาร์ ขนาด 1 1/4"x 6 มม. x 6 ม.', w:0, l:0 },
+  { code:'TMM5DF-XX381X60-A', name:'เหล็กแฟลทบาร์ ขนาด 1 1/2"x 4.5 มม. x 6 ม.', w:0, l:0 },
+  { code:'TMM5DF-XX635X60-A', name:'เหล็กแฟลทบาร์ ขนาด 2 1/2"x 6 มม. x 6 ม.', w:0, l:0 },
+  { code:'TMM5DF-XX750X80-A', name:'เหล็กแฟลทบาร์ ขนาด 75 x 8 มม. x 6 ม.', w:0, l:0 },
+  { code:'TMM5DF-XX762X60-A', name:'เหล็กแฟลทบาร์ ขนาด 3"x 6 มม. x 6 ม.', w:0, l:0 },
+  { code:'TMM5DL-X1000X70-A', name:'เหล็กฉาก ขนาด 100 x 100 x หนา 7 มม. x 6 ม.', w:0, l:0 },
+  { code:'TMM5DL-XX400X50-A', name:'เหล็กฉาก ขนาด 40 x 40 x หนา 5 มม. x 6 ม.', w:0, l:0 },
+  { code:'TMM5DL-XX600X50-A', name:'เหล็กฉาก ขนาด 60 x 60 x หนา 5 มม. x 6 ม.', w:0, l:0 },
+  { code:'TMM5DL-XX650X60-A', name:'เหล็กฉาก ขนาด 65 x 65 x หนา 6 มม. x 6 ม.', w:0, l:0 },
+  { code:'TMM5DU-XX750X50-A', name:'เหล็กรางน้ำ ขนาด 75 x 40 x หนา 5 มม. x 6 ม.', w:0, l:0 }
+];
+
+// รายการวัตถุดิบที่นับเป็น pcs. (ไม่ใช้ขนาดกว้าง x ยาว)
+const PCS_CODES = new Set([
+  'CP-FWBXX8-XXX006AA','SMPPLATEXEN5004','SSBD-X3XXX04XX100XX1','SSBF-X4XX158XX635XX1',
+  'SSNA-X1XXX04XXXX7XX1','SSNA-X1XXX05XXXX8XX1','SSNA-X1XXX06XXX10XX1',
+  'SSNA-X1XXX08XXX12XX1','SSNA-X1XXX10XXX15XX1',
+  'SSNA-X3XXX04XXXX7XX1','SSNA-X3XXX05XXXX8XX1','SSNA-X3XXX06XXX10XX1',
+  'SSNA-X3XXX08XXX12XX1','SSNA-X3XXX10XXX15XX1','SSNA-X3XXX12XXX12XX1','SSNA-X3XXX12XXX17XX1',
+  'SSNB-X1XXX04XXXXXXX1','SSNB-X1XXX04XXXXXXX2','SSNB-X1XXX04XXXXXXX3',
+  'SSNB-X1XXX05XXXXXXX1','SSNB-X1XXX06XXX10XX1','SSNB-X1XXX06XXXXXXX1','SSNB-X1XXX06XXXXXXX2',
+  'SSNB-X1XXX08XXX12XX1','SSNB-X1XXX08XXX12XX2','SSNB-X1XXX08XXX12XX3',
+  'SSNB-X1XXX10XXX15XX1',
+  'SSNB-X3XXX04XXXX7XX1','SSNB-X3XXX04XXXXXXX1','SSNB-X3XXX05XXXX8XX1',
+  'SSNB-X3XXX06XXX10XX1','SSNB-X3XXX08XXX12XX1',
+  'SSNB-X6XXX06XXX10XX1','SSNB-X6XXX06XXX10XX2',
+  'SSNC-X5XX158XXX11XX1',
+  'SSRA-X1XXX47XX127XX1','SSRA-X1XXX47XXX95XX1',
+  'SSRA-X6XXX31XXX63XX1','SSRA-X6XXX31XXX95XX1','SSRA-X6XXX47XX127XX1','SSRA-X6XXX47XXX95XX1',
+  'SSWA-X2XXX16XX320XX1',
+  'PGSH-X3X1270XXXXXXXX','PGSH-X3X2032XXXXXXXX',
+  'RASQ-X1XXXXXXXXXXXX1','RASQ-X3XXXXXXXXXXXX1','RASQ-X3XXXXXXXXXXXX2',
+  'RASQ-X6XXXXXXXXXXXX2','RASQ-X7XXXXXXXXXXXX2',
+  'SSSR-X1XXXXXXXXXXXX1'
+]);
+
+function isPcsMat(code) { return PCS_CODES.has(code); }
+
+// STATE — ข้อมูลจะมาจาก Firebase แบบ real-time
+let currentUser = null;
+let p2Rows = [];
+let p3Rows = [];
+let notifications = [];
+let currentStockMat = '';
+let notifOpen = false;
+let fbReady = false; // Firebase โหลดข้อมูลครั้งแรกเสร็จแล้ว
+
+// ==================== FIREBASE LISTENERS (Real-time sync) ====================
+// เมื่อข้อมูลใน Firebase เปลี่ยน ทุกเครื่องจะได้รับอัปเดตทันที
+
+// นับว่า listeners ตอบกลับแล้วกี่ตัว — เมื่อครบ 3 ตัว (หรือตัวแรกก็พอ) ให้ unlock
+let fbListenerCount = 0;
+function markFbReady() {
+  fbListenerCount++;
+  if (!fbReady) {
+    fbReady = true;
+    document.getElementById('fbLoadingScreen').style.display = 'none';
+  }
+}
+
+let _prevP2Count = 0;
+let _prevP3Count = 0;
+
+onValue(ref(db, 'p2rows'), snap => {
+  const val = snap.val();
+  const newRows = val ? Object.values(val) : [];
+  // เล่นเสียงเมื่อมีรายการใหม่เข้ามาจากเครื่องอื่น (ไม่ใช่ตัวเอง)
+  if (fbReady && currentUser && newRows.length > _prevP2Count) {
+    const added = newRows.filter(r => !p2Rows.find(x => x.id === r.id));
+    if (added.length > 0 && added.some(r => r.operator !== currentUser.name)) {
+      playSound('notify');
+    }
+  }
+  _prevP2Count = newRows.length;
+  p2Rows = newRows;
+  markFbReady();
+  if (currentUser && document.getElementById('page2').classList.contains('active')) renderP2();
+  if (currentUser && document.getElementById('page4').classList.contains('active')) renderP4();
+});
+
+onValue(ref(db, 'p3rows'), snap => {
+  const val = snap.val();
+  const newRows = val ? Object.values(val) : [];
+  if (fbReady && currentUser && newRows.length > _prevP3Count) {
+    const added = newRows.filter(r => !p3Rows.find(x => x.id === r.id));
+    if (added.length > 0 && added.some(r => r.operator !== currentUser.name)) {
+      playSound('notify');
+    }
+  }
+  _prevP3Count = newRows.length;
+  p3Rows = newRows;
+  markFbReady();
+  if (currentUser && document.getElementById('page3').classList.contains('active')) {
+    renderP3();
+    updateRunningBalanceCells();
+  }
+  if (currentUser && document.getElementById('page4').classList.contains('active')) renderP4();
+});
+
+onValue(ref(db, 'notifs'), snap => {
+  const val = snap.val();
+  notifications = val ? Object.values(val).sort((a,b) => (b.tsNum||0)-(a.tsNum||0)) : [];
+  markFbReady();
+  updateNotifBadge();
+  if (notifOpen) renderNotifList();
+});
+
+// ==================== FIREBASE WRITE HELPERS ====================
+
+async function saveP2RowToFb(row) {
+  // isNew เป็น transient state — ไม่บันทึกลง Firebase
+  const { isNew, ...data } = row;
+  await set(ref(db, `p2rows/${data.id}`), data);
+}
+
+async function saveP3RowToFb(row) {
+  const { isNew, _mt, _sc, ...data } = row;
+  await set(ref(db, `p3rows/${data.id}`), data);
+}
+
+async function deleteP2RowFromFb(id) {
+  await remove(ref(db, `p2rows/${id}`));
+}
+
+async function deleteP3RowFromFb(id) {
+  await remove(ref(db, `p3rows/${id}`));
+}
+
+async function updateP2RowInFb(id, fields) {
+  await update(ref(db, `p2rows/${id}`), fields);
+}
+
+async function updateP3RowInFb(id, fields) {
+  await update(ref(db, `p3rows/${id}`), fields);
+}
+
+// saveData เก็บเฉพาะ isNew rows ที่ยังไม่ได้บันทึก (ใช้สำหรับ in-progress draft เท่านั้น)
+function saveData() {
+  // ไม่ต้องทำอะไร — ข้อมูลจะถูก push ไป Firebase ตอน save/delete เท่านั้น
+}
+function today() { return new Date().toISOString().split('T')[0]; }
+function ts() { return Date.now(); }
+function uid() { return Math.random().toString(36).slice(2,9); }
+
+function toast(msg, type='info') {
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+function getMat(code) { return MATERIALS.find(m => m.code === code) || { w:1220, l:2440 }; }
+function calcEstimate(w, l, matCode) {
+  const mat = getMat(matCode);
+  if (!w || !l || !matCode) return 0;
+  return parseFloat(((parseFloat(w) * parseFloat(l)) / (mat.w * mat.l)).toFixed(4));
+}
+function matOptHtml(selectedCode) {
+  return MATERIALS.map(m =>
+    `<option value="${m.code}" ${m.code === selectedCode ? 'selected' : ''}>${m.code} | ${m.name}</option>`
+  ).join('');
+}
+
+function statusBadge(s) {
+  if (s==='wait') return '<span class="badge badge-wait">⏳ รออนุมัติ</span>';
+  if (s==='approved') return '<span class="badge badge-approved">✓ อนุมัติแล้ว</span>';
+  if (s==='rejected') return '<span class="badge badge-rejected">✗ ไม่อนุมัติ</span>';
+  if (s==='del_request') return '<span class="badge badge-pending-del">🗑 ขอลบ</span>';
+  return '';
+}
+
+function showModal(title, msg, onConfirm) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalMsg').textContent = msg;
+  document.getElementById('modalConfirmBtn').onclick = () => { closeModal(); onConfirm(); };
+  document.getElementById('confirmModal').classList.add('open');
+}
+function closeModal() { document.getElementById('confirmModal').classList.remove('open'); }
+
+// ==================== AUTH ====================
+function doLogin() {
+  const id = document.getElementById('loginId').value.trim();
+  const pw = document.getElementById('loginPw').value.trim();
+  const user = USERS[id];
+  if (user && user.pw === pw) {
+    currentUser = { id, ...user };
+    document.getElementById('loginErr').classList.remove('show');
+    goToPage(2);
+  } else {
+    document.getElementById('loginErr').classList.add('show');
+    document.getElementById('loginPw').value = '';
+    document.getElementById('loginId').select();
+  }
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('loginPage').classList.contains('active')) doLogin();
+});
+function showLogoutConfirm() {
+  showModal('ออกจากระบบ','คุณต้องการออกจากระบบหรือไม่?', () => { currentUser = null; goToPage(1); });
+}
+
+// ==================== PAGE NAV ====================
+function goToPage(n) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  if (n===1) { document.getElementById('loginPage').classList.add('active'); return; }
+  if (n===2) { document.getElementById('page2').classList.add('active'); renderP2(); updateAdminUI(2); }
+  if (n===3) { document.getElementById('page3').classList.add('active'); buildMatDropdowns(); renderP3(); updateAdminUI(3); }
+  if (n===4) { document.getElementById('page4').classList.add('active'); renderP4(); }
+  updateNotifBadge();
+}
+function updateAdminUI(page) {
+  if (!currentUser) return;
+  const isAdmin = currentUser.isAdmin;
+  if (page===2) {
+    const el = document.getElementById('p2ApproveBtn');
+    if (el) el.style.display = isAdmin ? 'flex' : 'none';
+  }
+  if (page===3) {
+    const el = document.getElementById('p3ApproveBtn');
+    const tb = document.getElementById('transferBar');
+    if (el) el.style.display = isAdmin ? 'flex' : 'none';
+    if (tb) tb.style.display = isAdmin ? 'flex' : 'none';
+  }
+}
+
+// ==================== MATERIAL DROPDOWNS ====================
+function buildMatDropdowns() {
+  const sel = document.getElementById('stockMatSelect');
+  sel.innerHTML = '<option value="">-- เลือกวัตถุดิบ --</option>';
+  MATERIALS.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.code;
+    opt.textContent = `${m.code} | ${m.name}`;
+    if (m.code === currentStockMat) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+// ==================== PAGE 2 ====================
+function renderP2() {
+  const filters = {
+    date: document.getElementById('s2Date')?.value?.toLowerCase() || '',
+    pd:   document.getElementById('s2PD')?.value?.toLowerCase() || '',
+    model:document.getElementById('s2Model')?.value?.toLowerCase() || '',
+    mat:  document.getElementById('s2Mat')?.value?.toLowerCase() || ''
+  };
+  let rows = p2Rows.filter(r => {
+    if (filters.date  && !r.date?.toLowerCase().includes(filters.date))   return false;
+    if (filters.pd    && !r.pd?.toLowerCase().includes(filters.pd))       return false;
+    if (filters.model && !r.model?.toLowerCase().includes(filters.model)) return false;
+    if (filters.mat   && !r.matCode?.toLowerCase().includes(filters.mat) && !MATERIALS.find(m=>m.code===r.matCode)?.name?.toLowerCase().includes(filters.mat)) return false;
+    return true;
+  });
+  document.getElementById('p2Body').innerHTML = rows.map(r => renderP2Row(r)).join('');
+  updateSelInfo(2);
+}
+
+function renderP2Row(r) {
+  const isAdmin = currentUser?.isAdmin;
+  const isApproved = r.status === 'approved';
+  const isPendingDel = r.status === 'del_request';
+  const bomUsage = (parseFloat(r.bom)||0) - (parseFloat(r.reuse)||0);
+  const onhand = (parseFloat(r.issued)||0) - bomUsage;
+  const ohClass = onhand >= 0 ? 'onhand-pos' : 'onhand-neg';
+  const action = r.action || 'นำเข้า';
+  const actionBadgeMap = {
+    'นำเข้า':      { color:'var(--green)',         bg:'var(--green-bg)' },
+    'ทิ้ง Scrap':  { color:'var(--orange)',        bg:'var(--orange-bg)' },
+    'นำออก Reuse': { color:'var(--accent-light)',  bg:'var(--blue-bg)' }
+  };
+  const ab = actionBadgeMap[action] || { color:'var(--text2)', bg:'var(--surface2)' };
+
+  // ข้อ 3: canEdit = isNew หรือ admin ทุกกรณี หรือ non-admin ที่ยังไม่ approved
+  const canEdit = r.isNew || isAdmin || (!isAdmin && !isApproved && r.status !== 'del_request');
+
+  if (canEdit) {
+    return `<tr class="${r.isNew?'new-row':''}" id="row2_${r.id}">
+      <td class="cb-cell"><input type="checkbox" class="row-cb" data-id="${r.id}" data-page="2" onchange="updateSelInfo(2)"></td>
+      <td><input type="date" value="${r.date||today()}" onchange="p2Field('${r.id}','date',this.value)" style="min-width:120px;"></td>
+      <td><input type="text" value="${r.pd||''}" placeholder="PD No." onchange="p2Field('${r.id}','pd',this.value)" style="min-width:80px;"></td>
+      <td><input type="text" value="${r.model||''}" placeholder="ชื่อแบบ" onchange="p2Field('${r.id}','model',this.value)" style="min-width:90px;"></td>
+      <td><input type="number" value="${r.qty||''}" placeholder="0" min="0" onchange="p2Field('${r.id}','qty',this.value)" style="width:55px;"></td>
+      <td><select onchange="p2Field('${r.id}','matCode',this.value)" style="min-width:340px;max-width:420px;"><option value="">เลือกวัตถุดิบ</option>${matOptHtml(r.matCode)}</select></td>
+      <td><input type="number" value="${r.bom||''}" placeholder="0.00" step="0.01" onchange="p2Field('${r.id}','bom',this.value)" style="width:65px;"></td>
+      <td><input type="number" value="${r.reuse||''}" placeholder="0.00" step="0.01" onchange="p2Field('${r.id}','reuse',this.value)" style="width:65px;"></td>
+      <td><input type="text" value="${r.reusePD||''}" placeholder="PD No." onchange="p2Field('${r.id}','reusePD',this.value)" style="min-width:80px;"></td>
+      <td class="calc-cell" id="bomuse_${r.id}">${bomUsage.toFixed(2)}</td>
+      <td><input type="number" value="${r.issued||''}" placeholder="0.00" step="0.01" onchange="p2Field('${r.id}','issued',this.value)" style="width:65px;"></td>
+      <td><input type="number" value="${r.received||''}" placeholder="0.00" step="0.01" onchange="p2Field('${r.id}','received',this.value)" style="width:65px;"></td>
+      <td class="calc-cell ${ohClass}" id="onhand_${r.id}">${onhand.toFixed(2)}</td>
+      <td>
+        <select onchange="p2Field('${r.id}','action',this.value)" style="min-width:110px;">
+          <option value="นำเข้า" ${action==='นำเข้า'?'selected':''}>นำเข้า</option>
+          <option value="ทิ้ง Scrap" ${action==='ทิ้ง Scrap'?'selected':''}>ทิ้ง Scrap</option>
+          <option value="นำออก Reuse" ${action==='นำออก Reuse'?'selected':''}>นำออก Reuse</option>
+        </select>
+      </td>
+      <td style="color:var(--text2);font-size:12px;white-space:nowrap;">${r.operator||currentUser?.name||'-'}</td>
+      <td>
+        ${statusBadge(r.status||'')}
+        ${!r.isNew ? `<br><button class="btn-sm btn-primary" onclick="updateP2Row('${r.id}')" style="font-size:10px;padding:2px 8px;margin-top:4px;">💾 บันทึก</button>` : ''}
+      </td>
+    </tr>`;
+  }
+
+  // Read-only row
+  const matFull = MATERIALS.find(m=>m.code===r.matCode);
+  const matName = matFull ? matFull.name : (r.matCode||'-');
+  const matShort = matFull ? `${r.matCode} | ${matFull.name.substring(0,60)}${matFull.name.length>60?'…':''}` : (r.matCode||'-');
+  const delBtn = (!isAdmin && isApproved)
+    ? `<br><button class="btn-sm btn-warning-outline" onclick="requestDelete2('${r.id}')" style="font-size:10px;padding:2px 7px;margin-top:3px;">ขอลบ</button>` : '';
+  const approveDelBtn = (isPendingDel && isAdmin)
+    ? `<br><button class="btn-sm btn-danger-outline" onclick="approveDelete2('${r.id}')" style="font-size:10px;padding:2px 7px;margin-top:3px;">อนุมัติลบ</button>` : '';
+
+  return `<tr id="row2_${r.id}">
+    <td class="cb-cell"><input type="checkbox" class="row-cb" data-id="${r.id}" data-page="2" onchange="updateSelInfo(2)"></td>
+    <td style="white-space:nowrap;font-family:var(--mono);font-size:12px;">${r.date||'-'}</td>
+    <td style="font-weight:600;">${r.pd||'-'}</td>
+    <td>${r.model||'-'}</td>
+    <td style="text-align:center;">${r.qty||'-'}</td>
+    <td style="font-size:11px;color:var(--text2);font-family:var(--mono);" title="${matName}">${matShort}</td>
+    <td class="est-value">${parseFloat(r.bom||0).toFixed(2)}</td>
+    <td class="est-value">${parseFloat(r.reuse||0).toFixed(2)}</td>
+    <td style="font-family:var(--mono);font-size:12px;color:var(--text2);">${r.reusePD||'-'}</td>
+    <td class="calc-cell">${bomUsage.toFixed(2)}</td>
+    <td class="est-value">${parseFloat(r.issued||0).toFixed(2)}</td>
+    <td class="est-value">${parseFloat(r.received||0).toFixed(2)}</td>
+    <td class="calc-cell ${ohClass}">${onhand.toFixed(2)}</td>
+    <td><span class="badge" style="background:${ab.bg};color:${ab.color};border:1px solid ${ab.color}40;">${action}</span></td>
+    <td style="color:var(--text2);font-size:12px;white-space:nowrap;">${r.operator||'-'}</td>
+    <td>${statusBadge(r.status||'wait')}${delBtn}${approveDelBtn}</td>
+  </tr>`;
+}
+
+function p2Field(id, field, val) {
+  const row = p2Rows.find(r => r.id === id);
+  if (!row) return;
+  row[field] = val;
+  const bomUsage = (parseFloat(row.bom)||0) - (parseFloat(row.reuse)||0);
+  const onhand = (parseFloat(row.issued)||0) - bomUsage;
+  const buEl = document.getElementById(`bomuse_${id}`);
+  const ohEl = document.getElementById(`onhand_${id}`);
+  if (buEl) buEl.textContent = bomUsage.toFixed(2);
+  if (ohEl) {
+    ohEl.textContent = onhand.toFixed(2);
+    ohEl.className = `calc-cell ${onhand >= 0 ? 'onhand-pos' : 'onhand-neg'}`;
+  }
+}
+
+function addP2Row() {
+  p2Rows.unshift({ id:uid(), date:today(), pd:'', model:'', qty:'', matCode:'', bom:'', reuse:'', reusePD:'', issued:'', received:'', action:'นำเข้า', operator:currentUser?.name||'', status:'', isNew:true });
+  renderP2();
+}
+
+async function updateP2Row(id) {
+  const r = p2Rows.find(x => x.id === id);
+  if (!r) return;
+  await saveP2RowToFb(r);
+  toast('อัปเดตข้อมูลแล้ว ✓', 'success');
+}
+
+async function saveP2Rows() {
+  const newRows = p2Rows.filter(r => r.isNew);
+  if (!newRows.length) { toast('ไม่มีข้อมูลใหม่ให้บันทึก','info'); return; }
+  const savedAt = new Date().toLocaleString('th-TH');
+  for (const r of newRows) {
+    r.isNew = false;
+    r.status = 'wait';
+    r.savedAt = savedAt;
+    await saveP2RowToFb(r);
+  }
+  // สร้างรายละเอียดแต่ละแถวสำหรับแจ้งเตือน
+  const details = newRows.map(r => {
+    const matName = MATERIALS.find(m=>m.code===r.matCode)?.name?.substring(0,35) || r.matCode || '-';
+    const issued = r.issued !== '' ? `${r.issued} แผ่น` : '-';
+    return `• PD:${r.pd||'-'} | ${matName} | เบิก:${issued}`;
+  }).join('\n');
+  pushNotif(
+    `บันทึกรายการเบิกใหม่ ${newRows.length} รายการ โดย: ${currentUser?.name}`,
+    `${savedAt}\n${details}`,
+    'p2'
+  );
+  toast(`บันทึกสำเร็จ ${newRows.length} รายการ`,'success');
+  playSound('save');
+}
+
+function filterP2() { renderP2(); }
+
+function deleteSelectedP2() {
+  const cbs = document.querySelectorAll('#p2Body .row-cb:checked');
+  if (!cbs.length) { toast('กรุณาเลือกแถวก่อน','error'); return; }
+  const ids = Array.from(cbs).map(c => c.dataset.id);
+  if (ids.some(id => { const r=p2Rows.find(x=>x.id===id); return r && r.status==='approved' && !currentUser?.isAdmin; })) {
+    toast('ไม่สามารถลบรายการที่อนุมัติแล้ว','error'); return;
+  }
+  showModal('ยืนยันการลบ',`ต้องการลบ ${ids.length} รายการใช่หรือไม่?`, async () => {
+    // ลบ isNew rows ออกจาก local draft ก่อน
+    p2Rows = p2Rows.filter(r => r.isNew && ids.includes(r.id) ? false : !ids.includes(r.id) || r.isNew ? true : false);
+    // ลบจาก Firebase (เฉพาะที่บันทึกแล้ว)
+    for (const id of ids) { await deleteP2RowFromFb(id); }
+    toast(`ลบ ${ids.length} รายการแล้ว`,'success');
+  });
+}
+
+function requestDelete2(id) {
+  showModal('ขอลบข้อมูล','ส่งคำขอลบไปยัง Admin?', async () => {
+    const r = p2Rows.find(x=>x.id===id);
+    if (r) {
+      await updateP2RowInFb(id, { status: 'del_request' });
+      pushNotif('ขอลบรายการเบิก',`โดย: ${currentUser?.name} | PD: ${r.pd}`,'del');
+      toast('ส่งคำขอลบแล้ว','info');
+    }
+  });
+}
+
+function approveDelete2(id) {
+  const r = p2Rows.find(x=>x.id===id);
+  if (!r) return;
+  showModal('อนุมัติลบ',`ต้องการลบรายการ PD: ${r.pd} ใช่หรือไม่?`, async () => {
+    await deleteP2RowFromFb(id);
+    toast('ลบรายการแล้ว','success');
+  });
+}
+
+// ==================== PAGE 3 STOCK ====================
+function loadStockTable() {
+  currentStockMat = document.getElementById('stockMatSelect').value;
+  const wrap = document.getElementById('stockTableWrap');
+  if (!currentStockMat) {
+    wrap.style.display = 'none';
+    document.getElementById('stockPillMT').style.display = 'none';
+    document.getElementById('stockPillSC').style.display = 'none';
+    return;
+  }
+  wrap.style.display = 'block';
+  // show/hide transfer bar
+  const tb = document.getElementById('transferBar');
+  if (tb) tb.style.display = currentUser?.isAdmin ? 'flex' : 'none';
+  renderP3();
+}
+
+function getStockRows() {
+  return p3Rows.filter(r => r.matCode === currentStockMat);
+}
+
+/*
+  Running balance logic:
+  Each row contributes to TWO separate pools: MT-sheet and Scrap
+  
+  action='นำเข้า'         → +estimate to MT-sheet pool
+  action='นำออก Reuse'   → -estimate from MT-sheet pool
+  action='โอนทิ้ง Scrap' → -estimate from MT-sheet, +estimate to Scrap
+  action='โอนกลับ MT'    → -estimate from Scrap, +estimate to MT-sheet
+  
+  Only approved rows affect the running balance.
+  isNew / wait rows show the projected impact in preview columns.
+*/
+function calcBalances(rows) {
+  let mt = 0, sc = 0, mtPcs = 0;
+  rows.forEach(r => {
+    const est    = parseFloat(r.estimate||0);
+    const estPcs = parseFloat(r.estimatePcs||0);
+    const pcs    = isPcsMat(r.matCode);
+    if (r.status === 'approved') {
+      if (r.action === 'นำเข้า') {
+        if (pcs) mtPcs += estPcs; else mt += est;
+      } else if (r.action === 'นำออก Reuse') {
+        if (pcs) mtPcs -= estPcs; else mt -= est;
+      } else if (r.action === 'ทิ้ง Scrap' || r.action === 'โอนทิ้ง Scrap') {
+        if (pcs) { mtPcs -= estPcs; sc += estPcs; } else { mt -= est; sc += est; }
+      } else if (r.action === 'โอนกลับ MT') {
+        if (pcs) { sc -= estPcs; mtPcs += estPcs; } else { sc -= est; mt += est; }
+      }
+    }
+    r._mt    = parseFloat(mt.toFixed(4));
+    r._sc    = parseFloat(sc.toFixed(4));
+    r._mtPcs = parseFloat(mtPcs.toFixed(4));
+  });
+  return { mt: parseFloat(mt.toFixed(4)), sc: parseFloat(sc.toFixed(4)), mtPcs: parseFloat(mtPcs.toFixed(4)) };
+}
+
+function renderP3() {
+  const tbody = document.getElementById('p3Body');
+  if (!tbody) return;
+  const rows = getStockRows();
+  rows.sort((a,b) => (a.ts||0)-(b.ts||0));
+  const totals = calcBalances(rows);
+  tbody.innerHTML = rows.map(r => renderP3Row(r)).join('');
+
+  // Update pills
+  const isPcs = isPcsMat(currentStockMat);
+  document.getElementById('stockMT').textContent = totals.mt.toFixed(4);
+  document.getElementById('stockMTPcs').textContent = totals.mtPcs.toFixed(4);
+  document.getElementById('stockSC').textContent = totals.sc.toFixed(4);
+  document.getElementById('stockPillMT').style.display    = (currentStockMat && !isPcs) ? 'inline-flex' : 'none';
+  document.getElementById('stockPillMTPcs').style.display = (currentStockMat && isPcs)  ? 'inline-flex' : 'none';
+  document.getElementById('stockPillSC').style.display    = currentStockMat ? 'inline-flex' : 'none';
+  updateSelInfo(3);
+}
+
+function actionLabel(action) {
+  const map = {
+    'นำเข้า':        { text:'นำเข้า',        color:'var(--green)' },
+    'นำออก Reuse':   { text:'นำออก Reuse',   color:'var(--accent-light)' },
+    'ทิ้ง Scrap':    { text:'ทิ้ง Scrap',    color:'var(--orange)' },
+    'โอนทิ้ง Scrap': { text:'โอนทิ้ง Scrap', color:'var(--orange)' },
+    'โอนกลับ MT':    { text:'โอนกลับ MT',    color:'var(--teal)' }
+  };
+  return map[action] || { text: action||'-', color:'var(--text2)' };
+}
+
+function renderP3Row(r) {
+  const isAdmin = currentUser?.isAdmin;
+  const isApproved = r.status === 'approved';
+  const isPendingDel = r.status === 'del_request';
+  const isTransfer = r.action === 'โอนทิ้ง Scrap' || r.action === 'โอนกลับ MT';
+  const rowClass = (r.action === 'โอนทิ้ง Scrap' || r.action === 'ทิ้ง Scrap') ? 'row-scrap-transfer' : r.action === 'โอนกลับ MT' ? 'row-return-transfer' : (r.isNew ? 'new-row' : '');
+  const al = actionLabel(r.action);
+  const pcs = isPcsMat(r.matCode);
+
+  // Running balance display cells
+  const mtDisplay    = `<span style="font-family:var(--mono);font-size:12px;font-weight:600;color:${(r._mt||0)>=0?'var(--green)':'var(--red)'};">${(r._mt||0).toFixed(4)}</span>`;
+  const mtPcsDisplay = `<span style="font-family:var(--mono);font-size:12px;font-weight:600;color:${(r._mtPcs||0)>=0?'var(--purple)':'var(--red)'};">${(r._mtPcs||0).toFixed(4)}</span>`;
+  const scDisplay    = `<span style="font-family:var(--mono);font-size:12px;font-weight:600;color:${(r._sc||0)>=0?'var(--orange)':'var(--red)'};">${(r._sc||0).toFixed(4)}</span>`;
+
+  if (r.isNew) {
+    const isTransferRow  = (r.action === 'โอนทิ้ง Scrap' || r.action === 'โอนกลับ MT');
+    const isScrapLike    = (r.action === 'โอนทิ้ง Scrap' || r.action === 'ทิ้ง Scrap');
+    // pcs materials: ไม่ต้องกรอกขนาด กรอก estimatePcs แทน
+    // แผ่น non-pcs: กรอกขนาดสำหรับ นำเข้า/นำออก Reuse/โอนกลับ; กรอก estimate เองสำหรับ scrap
+    const needSize = !pcs && (r.action === 'นำเข้า' || r.action === 'นำออก Reuse' || r.action === 'โอนกลับ MT');
+    const needEstSheet = !pcs && isScrapLike;
+
+    const actionCell = isTransferRow
+      ? `<td><span class="badge" style="background:${r.action==='โอนทิ้ง Scrap'?'var(--orange-bg)':'var(--teal-bg)'};color:${al.color};border:1px solid ${al.color}40;">${al.text}</span></td>`
+      : `<td><select style="min-width:115px;" onchange="p3ChangeAction('${r.id}',this.value)">
+           <option value="นำเข้า" ${r.action==='นำเข้า'?'selected':''}>นำเข้า</option>
+           <option value="นำออก Reuse" ${r.action==='นำออก Reuse'?'selected':''}>นำออก Reuse</option>
+           <option value="ทิ้ง Scrap" ${r.action==='ทิ้ง Scrap'?'selected':''}>ทิ้ง Scrap</option>
+         </select></td>`;
+
+    const sizeCell = needSize
+      ? `<td><div class="size-pair">
+           <input type="number" value="${r.sizeW||''}" placeholder="กว้าง" min="0" step="1" id="sw_${r.id}" oninput="p3SizeChange('${r.id}','w',this.value)" style="width:65px;">
+           <span>×</span>
+           <input type="number" value="${r.sizeL||''}" placeholder="ยาว" min="0" step="1" id="sl_${r.id}" oninput="p3SizeChange('${r.id}','l',this.value)" style="width:65px;">
+           <span style="font-size:10px;">mm</span>
+         </div></td>`
+      : `<td style="color:var(--text3);font-size:11px;text-align:center;">—</td>`;
+
+    // ยอด Estimate (แผ่น) — แสดงเฉพาะ non-pcs
+    const estSheetCell = pcs
+      ? `<td style="color:var(--text3);font-size:11px;text-align:center;">—</td>`
+      : needEstSheet
+        ? `<td><input type="number" value="${r.estimate>0?r.estimate:''}" placeholder="0.0000" step="0.0001" min="0" id="est3_${r.id}" oninput="p3EstimateManual('${r.id}',this.value)" style="width:85px;"></td>`
+        : `<td class="est-value" id="est3_${r.id}">${parseFloat(r.estimate||0).toFixed(4)}</td>`;
+
+    // ยอด Estimate (pcs.) — แสดงเฉพาะ pcs
+    const estPcsCell = !pcs
+      ? `<td style="color:var(--text3);font-size:11px;text-align:center;">—</td>`
+      : `<td><input type="number" value="${r.estimatePcs>0?r.estimatePcs:''}" placeholder="0" step="1" min="0"
+             id="estpcs3_${r.id}" oninput="p3EstimatePcsChange('${r.id}',this.value)" style="width:80px;"></td>`;
+
+    return `<tr class="${rowClass}" id="row3_${r.id}">
+      <td class="cb-cell"><input type="checkbox" class="row-cb" data-id="${r.id}" data-page="3" onchange="updateSelInfo(3)"></td>
+      <td><input type="date" value="${r.date||today()}" onchange="p3Field('${r.id}','date',this.value)" style="min-width:115px;"></td>
+      ${actionCell}
+      <td><input type="text" value="${r.pd||''}" placeholder="PD No." onchange="p3Field('${r.id}','pd',this.value)" style="min-width:75px;"></td>
+      ${sizeCell}
+      ${estSheetCell}
+      ${estPcsCell}
+      <td><input type="text" value="${r.reusePD||''}" placeholder="PD No." onchange="p3Field('${r.id}','reusePD',this.value)" style="min-width:75px;"></td>
+      <td id="mt_${r.id}">${mtDisplay}</td>
+      <td id="mtpcs_${r.id}">${mtPcsDisplay}</td>
+      <td id="sc_${r.id}">${scDisplay}</td>
+      <td style="color:var(--text2);font-size:12px;white-space:nowrap;">${r.operator||currentUser?.name||'-'}</td>
+      <td><input type="text" value="${r.remark||''}" placeholder="หมายเหตุ" onchange="p3Field('${r.id}','remark',this.value)" style="min-width:90px;"></td>
+      <td>${statusBadge(r.status||'')}</td>
+    </tr>`;
+  }
+
+  // canEdit saved rows
+  const canEdit3 = isAdmin || (!isAdmin && !isApproved && r.status !== 'del_request');
+
+  if (canEdit3) {
+    const isTransferRow = (r.action === 'โอนทิ้ง Scrap' || r.action === 'โอนกลับ MT');
+    const isScrapLike   = (r.action === 'โอนทิ้ง Scrap' || r.action === 'ทิ้ง Scrap');
+    const needSize  = !pcs && (r.action === 'นำเข้า' || r.action === 'นำออก Reuse' || r.action === 'โอนกลับ MT');
+    const needEstSh = !pcs && isScrapLike;
+
+    const actionCell = isTransferRow
+      ? `<td><span class="badge" style="background:${r.action==='โอนทิ้ง Scrap'?'var(--orange-bg)':'var(--teal-bg)'};color:${al.color};border:1px solid ${al.color}40;">${al.text}</span></td>`
+      : `<td><select style="min-width:115px;" onchange="p3Field('${r.id}','action',this.value)">
+           <option value="นำเข้า" ${r.action==='นำเข้า'?'selected':''}>นำเข้า</option>
+           <option value="นำออก Reuse" ${r.action==='นำออก Reuse'?'selected':''}>นำออก Reuse</option>
+           <option value="ทิ้ง Scrap" ${r.action==='ทิ้ง Scrap'?'selected':''}>ทิ้ง Scrap</option>
+         </select></td>`;
+    const sizeCell = needSize
+      ? `<td><div class="size-pair">
+           <input type="number" value="${r.sizeW||''}" placeholder="กว้าง" min="0" step="1" id="sw_${r.id}" oninput="p3SizeChange('${r.id}','w',this.value)" style="width:65px;">
+           <span>×</span>
+           <input type="number" value="${r.sizeL||''}" placeholder="ยาว" min="0" step="1" id="sl_${r.id}" oninput="p3SizeChange('${r.id}','l',this.value)" style="width:65px;">
+           <span style="font-size:10px;">mm</span>
+         </div></td>`
+      : `<td style="color:var(--text3);font-size:11px;text-align:center;">—</td>`;
+    const estSheetCell = pcs
+      ? `<td style="color:var(--text3);font-size:11px;text-align:center;">—</td>`
+      : needEstSh
+        ? `<td><input type="number" value="${r.estimate>0?r.estimate:''}" placeholder="0.0000" step="0.0001" min="0" id="est3_${r.id}" oninput="p3EstimateManual('${r.id}',this.value)" style="width:85px;"></td>`
+        : `<td class="est-value" id="est3_${r.id}">${parseFloat(r.estimate||0).toFixed(4)}</td>`;
+    const estPcsCell = !pcs
+      ? `<td style="color:var(--text3);font-size:11px;text-align:center;">—</td>`
+      : `<td><input type="number" value="${r.estimatePcs>0?r.estimatePcs:''}" placeholder="0" step="1" min="0" id="estpcs3_${r.id}" oninput="p3EstimatePcsChange('${r.id}',this.value)" style="width:80px;"></td>`;
+
+    const delBtn3 = (!isAdmin && isApproved) ? `<br><button class="btn-sm btn-warning-outline" onclick="requestDelete3('${r.id}')" style="font-size:10px;padding:2px 7px;margin-top:3px;">ขอลบ</button>` : '';
+    const appDelBtn3 = (isPendingDel && isAdmin) ? `<br><button class="btn-sm btn-danger-outline" onclick="approveDelete3('${r.id}')" style="font-size:10px;padding:2px 7px;margin-top:3px;">อนุมัติลบ</button>` : '';
+
+    return `<tr class="${rowClass}" id="row3_${r.id}">
+      <td class="cb-cell"><input type="checkbox" class="row-cb" data-id="${r.id}" data-page="3" onchange="updateSelInfo(3)"></td>
+      <td><input type="date" value="${r.date||today()}" onchange="p3Field('${r.id}','date',this.value)" style="min-width:115px;"></td>
+      ${actionCell}
+      <td><input type="text" value="${r.pd||''}" placeholder="PD No." onchange="p3Field('${r.id}','pd',this.value)" style="min-width:75px;"></td>
+      ${sizeCell}
+      ${estSheetCell}
+      ${estPcsCell}
+      <td><input type="text" value="${r.reusePD||''}" placeholder="PD No." onchange="p3Field('${r.id}','reusePD',this.value)" style="min-width:75px;"></td>
+      <td id="mt_${r.id}">${mtDisplay}</td>
+      <td id="mtpcs_${r.id}">${mtPcsDisplay}</td>
+      <td id="sc_${r.id}">${scDisplay}</td>
+      <td style="color:var(--text2);font-size:12px;white-space:nowrap;">${r.operator||'-'}</td>
+      <td><input type="text" value="${r.remark||''}" placeholder="หมายเหตุ" onchange="p3Field('${r.id}','remark',this.value)" style="min-width:90px;"></td>
+      <td>
+        ${statusBadge(r.status||'wait')}${delBtn3}${appDelBtn3}
+        <br><button class="btn-sm btn-primary" onclick="updateP3Row('${r.id}')" style="font-size:10px;padding:2px 8px;margin-top:4px;">💾 บันทึก</button>
+      </td>
+    </tr>`;
+  }
+
+  // Read-only
+  const needSize2  = !pcs && (r.action === 'นำเข้า' || r.action === 'นำออก Reuse' || r.action === 'โอนกลับ MT');
+  const sizeVal    = needSize2 && r.sizeW && r.sizeL ? `${r.sizeW} × ${r.sizeL}` : '—';
+  const estSheet   = !pcs ? parseFloat(r.estimate||0).toFixed(4) : '—';
+  const estPcsVal  = pcs  ? parseFloat(r.estimatePcs||0).toFixed(0)+' pcs.' : '—';
+  const delBtn     = (!isAdmin && isApproved) ? `<br><button class="btn-sm btn-warning-outline" onclick="requestDelete3('${r.id}')" style="font-size:10px;padding:2px 7px;margin-top:3px;">ขอลบ</button>` : '';
+  const appDelBtn  = (isPendingDel && isAdmin) ? `<br><button class="btn-sm btn-danger-outline" onclick="approveDelete3('${r.id}')" style="font-size:10px;padding:2px 7px;margin-top:3px;">อนุมัติลบ</button>` : '';
+
+  return `<tr class="${rowClass}" id="row3_${r.id}">
+    <td class="cb-cell"><input type="checkbox" class="row-cb" data-id="${r.id}" data-page="3" onchange="updateSelInfo(3)"></td>
+    <td style="white-space:nowrap;font-family:var(--mono);font-size:12px;">${r.date||'-'}</td>
+    <td><span style="color:${al.color};font-weight:700;font-size:12px;">${al.text}</span></td>
+    <td style="font-weight:600;">${r.pd||'-'}</td>
+    <td style="font-family:var(--mono);font-size:12px;">${sizeVal}</td>
+    <td class="est-value">${estSheet}</td>
+    <td class="est-value" style="color:var(--purple);">${estPcsVal}</td>
+    <td>${r.reusePD||'-'}</td>
+    <td id="mt_${r.id}">${mtDisplay}</td>
+    <td id="mtpcs_${r.id}">${mtPcsDisplay}</td>
+    <td id="sc_${r.id}">${scDisplay}</td>
+    <td style="color:var(--text2);font-size:12px;white-space:nowrap;">${r.operator||'-'}</td>
+    <td style="color:var(--text2);font-size:12px;">${r.remark||'-'}</td>
+    <td>${statusBadge(r.status||'wait')}${delBtn}${appDelBtn}</td>
+  </tr>`;
+}
+
+function p3Field(id, field, val) {
+  const row = p3Rows.find(r => r.id === id);
+  if (!row) return;
+  row[field] = val;
+  renderP3();
+}
+
+// แยก 2 ช่อง กว้าง และ ยาว — update in-place, ไม่ re-render ทั้งตาราง (ป้องกัน focus หาย)
+function p3SizeChange(id, axis, val) {
+  const row = p3Rows.find(r => r.id === id);
+  if (!row) return;
+  if (axis === 'w') row.sizeW = parseFloat(val)||0;
+  if (axis === 'l') row.sizeL = parseFloat(val)||0;
+  if (row.sizeW > 0 && row.sizeL > 0) {
+    row.estimate = calcEstimate(row.sizeW, row.sizeL, currentStockMat);
+  } else {
+    row.estimate = 0;
+  }
+  // อัปเดต estimate display โดยไม่ re-render
+  const estEl = document.getElementById(`est3_${id}`);
+  if (estEl && estEl.tagName !== 'INPUT') estEl.textContent = row.estimate.toFixed(4);
+  // อัปเดต running balance cells แบบ partial (ไม่ re-render ทั้ง tbody)
+  updateRunningBalanceCells();
+}
+
+// โอนทิ้ง Scrap — กรอก estimate เองได้ โดยไม่ re-render ทั้งตาราง
+function p3EstimateManual(id, val) {
+  const row = p3Rows.find(r => r.id === id);
+  if (!row) return;
+  row.estimate = parseFloat(val)||0;
+  updateRunningBalanceCells();
+}
+
+// กรอก estimatePcs โดยตรง (pcs materials) — ไม่ re-render ป้องกัน focus หาย
+function p3EstimatePcsChange(id, val) {
+  const row = p3Rows.find(r => r.id === id);
+  if (!row) return;
+  row.estimatePcs = parseFloat(val)||0;
+  updateRunningBalanceCells();
+}
+
+// เปลี่ยน action สำหรับ normal rows (นำเข้า / นำออก Reuse)
+function p3ChangeAction(id, val) {
+  const row = p3Rows.find(r => r.id === id);
+  if (!row) return;
+  row.action = val;
+  renderP3();
+}
+
+async function updateP3Row(id) {
+  const r = p3Rows.find(x => x.id === id);
+  if (!r) return;
+  await saveP3RowToFb(r);
+  toast('อัปเดตข้อมูลแล้ว ✓', 'success');
+}
+
+// ข้อ 6 & 7: Add normal row (นำเข้า / นำออก Reuse)
+function addP3Row() {
+  if (!currentStockMat) { toast('กรุณาเลือกวัตถุดิบก่อน','error'); return; }
+  const newRow = {
+    id:uid(), matCode:currentStockMat, date:today(), pd:'',
+    sizeW:0, sizeL:0, estimate:0,
+    action:'นำเข้า', reusePD:'', remark:'',
+    operator:currentUser?.name||'', status:'', isNew:true, ts:ts()
+  };
+  p3Rows.push(newRow);
+  renderP3();
+  setTimeout(() => document.getElementById('p3Table')?.closest('.table-wrap')?.scrollTo(0,99999), 50);
+}
+
+// ข้อ 6 & 7 & 8: Transfer row (admin only)
+function addP3TransferRow(type) {
+  if (!currentUser?.isAdmin) { toast('สิทธิ์ Admin เท่านั้น','error'); return; }
+  if (!currentStockMat) { toast('กรุณาเลือกวัตถุดิบก่อน','error'); return; }
+  const action = type === 'scrap' ? 'โอนทิ้ง Scrap' : 'โอนกลับ MT';
+  const newRow = {
+    id:uid(), matCode:currentStockMat, date:today(), pd:'',
+    sizeW:0, sizeL:0, estimate:0,
+    action:action, reusePD:'', remark:'',
+    operator:currentUser?.name||'', status:'', isNew:true, ts:ts()
+  };
+  p3Rows.push(newRow);
+  renderP3();
+  setTimeout(() => document.getElementById('p3Table')?.closest('.table-wrap')?.scrollTo(0,99999), 50);
+  toast(type==='scrap'?'เพิ่มแถวโอนทิ้ง Scrap':'เพิ่มแถวโอนกลับ MT-sheet','info');
+}
+
+async function saveP3Rows() {
+  const newRows = p3Rows.filter(r => r.isNew);
+  if (!newRows.length) { toast('ไม่มีข้อมูลใหม่ให้บันทึก','info'); return; }
+  const savedAt = new Date().toLocaleString('th-TH');
+  for (const r of newRows) {
+    r.isNew = false;
+    r.status = 'wait';
+    r.savedAt = savedAt;
+    await saveP3RowToFb(r);
+  }
+  // สร้างรายละเอียดแต่ละแถวสำหรับแจ้งเตือน
+  const details = newRows.map(r => {
+    const matName = MATERIALS.find(m=>m.code===r.matCode)?.name?.substring(0,35) || r.matCode || '-';
+    const action = r.action || '-';
+    return `• ${action} | ${matName} | PD:${r.pd||'-'}`;
+  }).join('\n');
+  pushNotif(
+    `บันทึก Stock ${newRows.length} รายการ โดย: ${currentUser?.name}`,
+    `${savedAt}\n${details}`,
+    'p3'
+  );
+  toast(`บันทึกสำเร็จ ${newRows.length} รายการ`,'success');
+  playSound('save');
+}
+
+function deleteSelectedP3() {
+  const cbs = document.querySelectorAll('#p3Body .row-cb:checked');
+  if (!cbs.length) { toast('กรุณาเลือกแถวก่อน','error'); return; }
+  const ids = Array.from(cbs).map(c => c.dataset.id);
+  if (ids.some(id => { const r=p3Rows.find(x=>x.id===id); return r && r.status==='approved' && !currentUser?.isAdmin; })) {
+    toast('ไม่สามารถลบรายการที่อนุมัติแล้ว','error'); return;
+  }
+  showModal('ยืนยันการลบ',`ต้องการลบ ${ids.length} รายการใช่หรือไม่?`, async () => {
+    for (const id of ids) { await deleteP3RowFromFb(id); }
+    toast(`ลบ ${ids.length} รายการแล้ว`,'success');
+  });
+}
+
+function requestDelete3(id) {
+  showModal('ขอลบข้อมูล','ส่งคำขอลบไปยัง Admin?', async () => {
+    const r = p3Rows.find(x=>x.id===id);
+    if (r) {
+      await updateP3RowInFb(id, { status: 'del_request' });
+      pushNotif('ขอลบรายการ Stock',`โดย: ${currentUser?.name} | PD: ${r.pd}`,'del');
+      toast('ส่งคำขอลบแล้ว','info');
+    }
+  });
+}
+
+function approveDelete3(id) {
+  const r = p3Rows.find(x=>x.id===id);
+  if (!r) return;
+  showModal('อนุมัติลบ','ต้องการลบรายการนี้ใช่หรือไม่?', async () => {
+    await deleteP3RowFromFb(id);
+    toast('ลบรายการแล้ว','success');
+  });
+}
+
+async function bulkApprove(page, approve) {
+  if (!currentUser?.isAdmin) { toast('สิทธิ์ Admin เท่านั้น','error'); return; }
+  const bodyId = page===2 ? 'p2Body' : 'p3Body';
+  const cbs = document.querySelectorAll(`#${bodyId} .row-cb:checked`);
+  if (!cbs.length) { toast('กรุณาเลือกแถวก่อน','error'); return; }
+  const ids = Array.from(cbs).map(c=>c.dataset.id);
+  const rows = page===2 ? p2Rows : p3Rows;
+  const newStatus = approve ? 'approved' : 'rejected';
+
+  for (const id of ids) {
+    const r = rows.find(x=>x.id===id);
+    if (!r || r.status==='' || r.status==='approved') continue;
+
+    if (page===2) {
+      await updateP2RowInFb(id, { status: newStatus });
+      // ถ้าอนุมัติ และ action = 'ทิ้ง Scrap' → สร้าง p3 row อัตโนมัติ
+      if (approve && r.action==='ทิ้ง Scrap' && r.matCode) {
+        const scrapAmt = parseFloat(r.issued||0);
+        if (scrapAmt > 0) {
+          const scrapRow = {
+            id: uid(), matCode: r.matCode, date: r.date||today(), pd: r.pd||'',
+            sizeW:0, sizeL:0, estimate: parseFloat(scrapAmt.toFixed(4)),
+            action:'โอนทิ้ง Scrap', reusePD:'',
+            remark:`[Auto Scrap จากหน้า 2 | PD:${r.pd||'-'} แบบ:${r.model||'-'}]`,
+            operator: r.operator||currentUser?.name||'',
+            status:'approved', savedAt: new Date().toLocaleString('th-TH'), ts: ts()+1
+          };
+          await saveP3RowToFb(scrapRow);
+        }
+      }
+    } else {
+      await updateP3RowInFb(id, { status: newStatus });
+    }
+  }
+  toast(approve ? `อนุมัติ ${ids.length} รายการ` : `ไม่อนุมัติ ${ids.length} รายการ`, approve?'success':'error');
+}
+
+// ==================== UI HELPERS ====================
+function updateSelInfo(page) {
+  const cbs = document.querySelectorAll(`#p${page}Body .row-cb:checked`);
+  const el = document.getElementById(`p${page}SelInfo`);
+  if (el) el.textContent = cbs.length > 0 ? `เลือก ${cbs.length} รายการ` : 'เลือกแถวเพื่อดำเนินการ';
+}
+
+// อัปเดต running balance cells in-place (ไม่ re-render ทั้งตาราง ป้องกัน focus หาย)
+function updateRunningBalanceCells() {
+  const rows = getStockRows();
+  rows.sort((a,b) => (a.ts||0)-(b.ts||0));
+  const totals = calcBalances(rows);
+  rows.forEach(r => {
+    const mtEl    = document.getElementById(`mt_${r.id}`);
+    const mtPcsEl = document.getElementById(`mtpcs_${r.id}`);
+    const scEl    = document.getElementById(`sc_${r.id}`);
+    if (mtEl)    mtEl.innerHTML    = `<span style="font-family:var(--mono);font-size:12px;font-weight:600;color:${(r._mt||0)>=0?'var(--green)':'var(--red)'};">${(r._mt||0).toFixed(4)}</span>`;
+    if (mtPcsEl) mtPcsEl.innerHTML = `<span style="font-family:var(--mono);font-size:12px;font-weight:600;color:${(r._mtPcs||0)>=0?'var(--purple)':'var(--red)'};">${(r._mtPcs||0).toFixed(4)}</span>`;
+    if (scEl)    scEl.innerHTML    = `<span style="font-family:var(--mono);font-size:12px;font-weight:600;color:${(r._sc||0)>=0?'var(--orange)':'var(--red)'};">${(r._sc||0).toFixed(4)}</span>`;
+  });
+  const isPcs = isPcsMat(currentStockMat);
+  if (document.getElementById('stockMT'))    document.getElementById('stockMT').textContent    = totals.mt.toFixed(4);
+  if (document.getElementById('stockMTPcs')) document.getElementById('stockMTPcs').textContent = totals.mtPcs.toFixed(4);
+  if (document.getElementById('stockSC'))    document.getElementById('stockSC').textContent    = totals.sc.toFixed(4);
+  if (document.getElementById('stockPillMT'))    document.getElementById('stockPillMT').style.display    = (currentStockMat && !isPcs) ? 'inline-flex' : 'none';
+  if (document.getElementById('stockPillMTPcs')) document.getElementById('stockPillMTPcs').style.display = (currentStockMat && isPcs)  ? 'inline-flex' : 'none';
+}
+
+// ==================== NOTIFICATIONS ====================
+async function pushNotif(title, body, type) {
+  if (currentUser?.isAdmin) return;
+  const n = { id:uid(), title, body, type, ts:new Date().toLocaleString('th-TH'), tsNum: Date.now(), read:false };
+  await set(ref(db, `notifs/${n.id}`), n);
+}
+function updateNotifBadge() {
+  if (!currentUser?.isAdmin) return;
+  const unread = notifications.filter(n=>!n.read).length;
+  ['notifBadge2','notifBadge3','notifBadge4'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = unread>9?'9+':unread; el.classList.toggle('show', unread>0); }
+  });
+}
+function toggleNotif() {
+  notifOpen = !notifOpen;
+  document.getElementById('notifPanel').classList.toggle('open', notifOpen);
+  if (notifOpen) renderNotifList();
+}
+function renderNotifList() {
+  const list = document.getElementById('notifList');
+  if (!notifications.length) { list.innerHTML='<div class="notif-empty">ไม่มีการแจ้งเตือน</div>'; return; }
+  list.innerHTML = notifications.map(n => {
+    // แปลง \n เป็น <br> สำหรับรายละเอียดหลายบรรทัด
+    const bodyHtml = (n.body||'').replace(/\n/g,'<br>');
+    return `<div class="notif-item ${n.read?'':'unread'}" onclick="readNotif('${n.id}')">
+      <h4>${n.title}</h4>
+      <p style="white-space:normal;line-height:1.6;">${bodyHtml}</p>
+      <div class="notif-time">${n.ts}</div>
+    </div>`;
+  }).join('');
+}
+async function readNotif(id) {
+  await update(ref(db, `notifs/${id}`), { read: true });
+}
+
+// ==================== PAGE 4: ON-HAND LIST ====================
+
+function calcAllBalances() {
+  // คำนวณยอด MT และ Scrap ทุก material จาก approved rows เท่านั้น
+  const result = {};
+  MATERIALS.forEach(m => { result[m.code] = { mt: 0, sc: 0, mtPcs: 0 }; });
+  p3Rows.forEach(r => {
+    if (r.status !== 'approved') return;
+    if (!result[r.matCode]) return;
+    const pcs    = isPcsMat(r.matCode);
+    const est    = parseFloat(r.estimate||0);
+    const estPcs = parseFloat(r.estimatePcs||0);
+    if (r.action === 'นำเข้า') {
+      if (pcs) result[r.matCode].mtPcs += estPcs; else result[r.matCode].mt += est;
+    } else if (r.action === 'นำออก Reuse') {
+      if (pcs) result[r.matCode].mtPcs -= estPcs; else result[r.matCode].mt -= est;
+    } else if (r.action === 'ทิ้ง Scrap' || r.action === 'โอนทิ้ง Scrap') {
+      if (pcs) { result[r.matCode].mtPcs -= estPcs; result[r.matCode].sc += estPcs; }
+      else      { result[r.matCode].mt    -= est;    result[r.matCode].sc += est;    }
+    } else if (r.action === 'โอนกลับ MT') {
+      if (pcs) { result[r.matCode].sc -= estPcs; result[r.matCode].mtPcs += estPcs; }
+      else      { result[r.matCode].sc -= est;    result[r.matCode].mt    += est;    }
+    }
+  });
+  Object.keys(result).forEach(k => {
+    result[k].mt    = parseFloat(result[k].mt.toFixed(4));
+    result[k].sc    = parseFloat(result[k].sc.toFixed(4));
+    result[k].mtPcs = parseFloat(result[k].mtPcs.toFixed(4));
+  });
+  return result;
+}
+
+function renderP4() {
+  const balances = calcAllBalances();
+  const tbody = document.getElementById('p4Body');
+  if (!tbody) return;
+
+  let totalMT = 0, totalSC = 0, totalMTPcs = 0, activeCount = 0;
+
+  tbody.innerHTML = MATERIALS.map((m, idx) => {
+    const b = balances[m.code];
+    const mt = b.mt, sc = b.sc, mtPcs = b.mtPcs;
+    const pcs = isPcsMat(m.code);
+    const hasData = mt !== 0 || sc !== 0 || mtPcs !== 0;
+    if (hasData) activeCount++;
+    totalMT += mt; totalSC += sc; totalMTPcs += mtPcs;
+
+    const mtColor    = mt > 0 ? 'var(--green)' : mt < 0 ? 'var(--red)' : 'var(--text3)';
+    const mtPcsColor = mtPcs > 0 ? 'var(--purple)' : mtPcs < 0 ? 'var(--red)' : 'var(--text3)';
+    const scColor    = sc > 0 ? 'var(--orange)' : sc < 0 ? 'var(--red)' : 'var(--text3)';
+    const rowBg      = idx % 2 === 0 ? '' : 'background:rgba(255,255,255,0.02);';
+
+    let statusHtml = '<span style="font-size:10px;color:var(--text3);">—</span>';
+    if (mt > 0 || sc > 0 || mtPcs > 0) statusHtml = '<span class="badge badge-approved" style="font-size:10px;">มีของ</span>';
+    else if (mt < 0 || sc < 0 || mtPcs < 0) statusHtml = '<span class="badge badge-rejected" style="font-size:10px;">ติดลบ</span>';
+
+    const mtCell    = pcs ? '<td style="text-align:right;color:var(--text3);font-size:11px;">—</td>'
+      : `<td style="text-align:right;font-family:var(--mono);font-size:13px;font-weight:700;color:${mtColor};">${mt !== 0 ? mt.toFixed(4) : '<span style="color:var(--text3);">0.0000</span>'}</td>`;
+    const mtPcsCell = !pcs ? '<td style="text-align:right;color:var(--text3);font-size:11px;">—</td>'
+      : `<td style="text-align:right;font-family:var(--mono);font-size:13px;font-weight:700;color:${mtPcsColor};">${mtPcs !== 0 ? mtPcs.toFixed(0)+' pcs.' : '<span style="color:var(--text3);">0</span>'}</td>`;
+
+    return `<tr style="${rowBg}${hasData?'':'opacity:0.45;'}">
+      <td style="color:var(--text3);font-family:var(--mono);font-size:11px;text-align:center;">${idx+1}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text2);white-space:nowrap;">${m.code}</td>
+      <td style="font-size:12px;">${m.name}</td>
+      ${mtCell}
+      ${mtPcsCell}
+      <td style="text-align:right;font-family:var(--mono);font-size:13px;font-weight:700;color:${scColor};">
+        ${sc !== 0 ? sc.toFixed(4) : '<span style="color:var(--text3);">0.0000</span>'}
+      </td>
+      <td style="text-align:center;">${statusHtml}</td>
+    </tr>`;
+  }).join('');
+
+  // Footer summary row
+  const footerRow = document.createElement('tr');
+  footerRow.style.cssText = 'background:var(--surface2);border-top:2px solid var(--border2);font-weight:700;';
+  footerRow.innerHTML = `
+    <td colspan="3" style="padding:10px 8px;font-size:12px;font-weight:700;color:var(--text2);">
+      รวมทั้งหมด (${activeCount} รายการที่มียอด จากทั้งหมด ${MATERIALS.length} รายการ)
+    </td>
+    <td style="text-align:right;font-family:var(--mono);font-size:13px;font-weight:800;color:var(--green);padding:10px 8px;">${totalMT.toFixed(4)}</td>
+    <td style="text-align:right;font-family:var(--mono);font-size:13px;font-weight:800;color:var(--purple);padding:10px 8px;">${totalMTPcs.toFixed(0)} pcs.</td>
+    <td style="text-align:right;font-family:var(--mono);font-size:13px;font-weight:800;color:var(--orange);padding:10px 8px;">${totalSC.toFixed(4)}</td>
+    <td></td>`;
+  tbody.appendChild(footerRow);
+
+  const cards = document.getElementById('p4SummaryCards');
+  if (cards) {
+    cards.innerHTML = `
+      <div class="section-card" style="flex:1;min-width:150px;margin-bottom:0;padding:12px 16px;">
+        <div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">มียอด PD-MTsheet (แผ่น)</div>
+        <div style="font-family:var(--mono);font-size:22px;font-weight:800;color:var(--green);">${MATERIALS.filter(m=>balances[m.code].mt>0).length}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">จาก ${MATERIALS.length} รายการ</div>
+      </div>
+      <div class="section-card" style="flex:1;min-width:150px;margin-bottom:0;padding:12px 16px;">
+        <div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">มียอด PD-MTsheet (pcs.)</div>
+        <div style="font-family:var(--mono);font-size:22px;font-weight:800;color:var(--purple);">${MATERIALS.filter(m=>balances[m.code].mtPcs>0).length}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">จาก ${MATERIALS.length} รายการ</div>
+      </div>
+      <div class="section-card" style="flex:1;min-width:150px;margin-bottom:0;padding:12px 16px;">
+        <div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">มียอด PD-Scrap</div>
+        <div style="font-family:var(--mono);font-size:22px;font-weight:800;color:var(--orange);">${MATERIALS.filter(m=>balances[m.code].sc>0).length}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">จาก ${MATERIALS.length} รายการ</div>
+      </div>
+      <div class="section-card" style="flex:1;min-width:160px;margin-bottom:0;padding:12px 16px;">
+        <div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">ยอดรวม PD-MTsheet (แผ่น)</div>
+        <div style="font-family:var(--mono);font-size:18px;font-weight:800;color:var(--green);">${totalMT.toFixed(4)}</div>
+      </div>
+      <div class="section-card" style="flex:1;min-width:160px;margin-bottom:0;padding:12px 16px;">
+        <div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">ยอดรวม PD-MTsheet (pcs.)</div>
+        <div style="font-family:var(--mono);font-size:18px;font-weight:800;color:var(--purple);">${totalMTPcs.toFixed(0)} pcs.</div>
+      </div>`;
+  }
+}
+
+function exportP4Excel() {
+  const balances = calcAllBalances();
+  const wb = XLSX.utils.book_new();
+
+  const header = ['#', 'รหัสวัตถุดิบ', 'ชื่อวัตถุดิบ', 'Estimate PD-MTsheet (แผ่น)', 'PD-Scrap (แผ่น)', 'สถานะ'];
+  const dataRows = MATERIALS.map((m, idx) => {
+    const b = balances[m.code];
+    let status = '-';
+    if (b.mt > 0 || b.sc > 0) status = 'มีของ';
+    else if (b.mt < 0 || b.sc < 0) status = 'ติดลบ';
+    return [idx+1, m.code, m.name, b.mt, b.sc, status];
+  });
+
+  // Total row
+  const totalMT = parseFloat(MATERIALS.reduce((s,m)=>s+balances[m.code].mt,0).toFixed(4));
+  const totalSC = parseFloat(MATERIALS.reduce((s,m)=>s+balances[m.code].sc,0).toFixed(4));
+  dataRows.push(['', '', 'รวมทั้งหมด', totalMT, totalSC, '']);
+
+  const ws = XLSX.utils.aoa_to_sheet([header, ...dataRows]);
+  ws['!cols'] = [{wch:4},{wch:24},{wch:55},{wch:24},{wch:20},{wch:10}];
+
+  const range = XLSX.utils.decode_range(ws['!ref']);
+
+  // Header style
+  for (let C = 0; C <= range.e.c; C++) {
+    const addr = XLSX.utils.encode_cell({ r:0, c:C });
+    if (!ws[addr]) continue;
+    ws[addr].s = {
+      font: { bold:true, color:{ rgb:'FFFFFF' } },
+      fill: { fgColor:{ rgb:'1E3A5F' } },
+      alignment: { horizontal:'center', vertical:'center', wrapText:true },
+      border: { top:{style:'thin',color:{rgb:'93C5FD'}}, bottom:{style:'thin',color:{rgb:'93C5FD'}}, left:{style:'thin',color:{rgb:'93C5FD'}}, right:{style:'thin',color:{rgb:'93C5FD'}} }
+    };
+  }
+
+  // Data rows
+  for (let R = 1; R <= dataRows.length; R++) {
+    const isTotal = R === dataRows.length;
+    const mt = dataRows[R-1][3];
+    const sc = dataRows[R-1][4];
+    const fillColor = isTotal ? 'E0F2FE' : R%2===0 ? 'F8FAFC' : 'FFFFFF';
+    for (let C = 0; C <= range.e.c; C++) {
+      const addr = XLSX.utils.encode_cell({ r:R, c:C });
+      if (!ws[addr]) ws[addr] = { t:'z', v:'' };
+      let fontColor = '1E293B';
+      if (C===3) fontColor = mt>0?'059669':mt<0?'DC2626':'64748B';
+      if (C===4) fontColor = sc>0?'D97706':sc<0?'DC2626':'64748B';
+      ws[addr].s = {
+        font: { bold: isTotal || C===3 || C===4, color:{ rgb: fontColor } },
+        fill: { fgColor:{ rgb: fillColor } },
+        alignment: { vertical:'center', horizontal: (C>=3&&C<=4)?'right':'left' },
+        numFmt: (C===3||C===4) ? '#,##0.0000' : '@',
+        border: { top:{style:'hair',color:{rgb:'CBD5E1'}}, bottom:{style:'hair',color:{rgb:'CBD5E1'}}, left:{style:'hair',color:{rgb:'CBD5E1'}}, right:{style:'hair',color:{rgb:'CBD5E1'}} }
+      };
+    }
+  }
+
+  ws['!freeze'] = { xSplit:0, ySplit:1 };
+
+  XLSX.utils.book_append_sheet(wb, ws, 'On-Hand List');
+
+  const dateStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  XLSX.writeFile(wb, `PPS563_OnHand_${dateStr}.xlsx`, { bookType:'xlsx', type:'binary', cellStyles:true });
+  toast('Export Excel สำเร็จ ✓','success');
+}
+
+// ==================== EXPORT EXCEL ====================
+
+function statusText(s) {
+  if (s === 'wait')     return 'รออนุมัติ';
+  if (s === 'approved') return 'อนุมัติแล้ว';
+  if (s === 'rejected') return 'ไม่อนุมัติ';
+  if (s === 'del_request') return 'ขอลบ';
+  return '-';
+}
+
+function exportP2Excel() {
+  // ใช้ข้อมูลที่กำลังแสดงอยู่ (ผ่าน filter เดียวกับ renderP2)
+  const filters = {
+    date:  document.getElementById('s2Date')?.value?.toLowerCase()  || '',
+    pd:    document.getElementById('s2PD')?.value?.toLowerCase()    || '',
+    model: document.getElementById('s2Model')?.value?.toLowerCase() || '',
+    mat:   document.getElementById('s2Mat')?.value?.toLowerCase()   || ''
+  };
+  const rows = p2Rows.filter(r => {
+    if (filters.date  && !r.date?.toLowerCase().includes(filters.date))   return false;
+    if (filters.pd    && !r.pd?.toLowerCase().includes(filters.pd))       return false;
+    if (filters.model && !r.model?.toLowerCase().includes(filters.model)) return false;
+    if (filters.mat   && !r.matCode?.toLowerCase().includes(filters.mat) &&
+        !MATERIALS.find(m=>m.code===r.matCode)?.name?.toLowerCase().includes(filters.mat)) return false;
+    return true;
+  });
+
+  if (!rows.length) { toast('ไม่มีข้อมูลที่จะ Export', 'error'); return; }
+
+  const wb = XLSX.utils.book_new();
+
+  // Header row
+  const header = [
+    'วันที่', 'PD', 'แบบ', 'Qty.',
+    'รหัสวัตถุดิบ', 'ชื่อวัตถุดิบ',
+    'BOM', 'Reuse', 'PD ที่นำมา Reuse', 'BOMใช้งาน (BOM-Reuse)',
+    'จำนวนเบิก', 'จำนวนที่ได้รับ', 'On-hand',
+    'ขอดำเนินการ', 'ผู้ทำรายการ', 'สถานะ'
+  ];
+
+  const dataRows = rows.map(r => {
+    const mat = MATERIALS.find(m => m.code === r.matCode);
+    const bomUsage = (parseFloat(r.bom)||0) - (parseFloat(r.reuse)||0);
+    const onhand   = (parseFloat(r.issued)||0) - bomUsage;
+    return [
+      r.date   || '',
+      r.pd     || '',
+      r.model  || '',
+      r.qty    !== '' ? Number(r.qty)    : '',
+      r.matCode || '',
+      mat ? mat.name : '',
+      r.bom    !== '' ? Number(r.bom)    : '',
+      r.reuse  !== '' ? Number(r.reuse)  : '',
+      r.reusePD || '',
+      parseFloat(bomUsage.toFixed(4)),
+      r.issued   !== '' ? Number(r.issued)   : '',
+      r.received !== '' ? Number(r.received) : '',
+      parseFloat(onhand.toFixed(4)),
+      r.action   || '',
+      r.operator || '',
+      statusText(r.status)
+    ];
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet([header, ...dataRows]);
+
+  // Column widths
+  ws['!cols'] = [
+    {wch:12},{wch:12},{wch:16},{wch:6},
+    {wch:22},{wch:48},
+    {wch:8},{wch:8},{wch:14},{wch:20},
+    {wch:12},{wch:14},{wch:10},
+    {wch:14},{wch:14},{wch:12}
+  ];
+
+  // Style header row (bold + fill) — requires writing styles via cell properties
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for (let C = range.s.c; C <= range.e.c; C++) {
+    const addr = XLSX.utils.encode_cell({ r: 0, c: C });
+    if (!ws[addr]) continue;
+    ws[addr].s = {
+      font:      { bold: true, color: { rgb: 'FFFFFF' } },
+      fill:      { fgColor: { rgb: '1E40AF' } },
+      alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+      border: {
+        top:    { style: 'thin', color: { rgb: '93C5FD' } },
+        bottom: { style: 'thin', color: { rgb: '93C5FD' } },
+        left:   { style: 'thin', color: { rgb: '93C5FD' } },
+        right:  { style: 'thin', color: { rgb: '93C5FD' } }
+      }
+    };
+  }
+
+  // Zebra rows + number format
+  for (let R = 1; R <= dataRows.length; R++) {
+    const fillColor = R % 2 === 0 ? 'EFF6FF' : 'FFFFFF';
+    for (let C = range.s.c; C <= range.e.c; C++) {
+      const addr = XLSX.utils.encode_cell({ r: R, c: C });
+      if (!ws[addr]) ws[addr] = { t: 'z', v: '' };
+      ws[addr].s = {
+        fill:      { fgColor: { rgb: fillColor } },
+        alignment: { vertical: 'center', wrapText: false },
+        border: {
+          top:    { style: 'hair', color: { rgb: 'BFDBFE' } },
+          bottom: { style: 'hair', color: { rgb: 'BFDBFE' } },
+          left:   { style: 'hair', color: { rgb: 'BFDBFE' } },
+          right:  { style: 'hair', color: { rgb: 'BFDBFE' } }
+        }
+      };
+      // Number format for numeric columns: BOM(6), Reuse(7), BOMใช้งาน(9), จำนวนเบิก(10), จำนวนที่ได้รับ(11), On-hand(12)
+      if ([6,7,9,10,11,12].includes(C)) {
+        ws[addr].s.numFmt = '#,##0.0000';
+      }
+    }
+  }
+
+  ws['!freeze'] = { xSplit: 0, ySplit: 1 }; // freeze header row
+
+  XLSX.utils.book_append_sheet(wb, ws, 'รายการเบิก');
+
+  const dateStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  XLSX.writeFile(wb, `PPS563_รายการเบิก_${dateStr}.xlsx`, { bookType:'xlsx', type:'binary', cellStyles: true });
+  toast('Export Excel สำเร็จ ✓', 'success');
+}
+
+function exportP3Excel() {
+  if (!currentStockMat) { toast('กรุณาเลือกวัตถุดิบก่อน Export', 'error'); return; }
+
+  const rows = getStockRows();
+  if (!rows.length) { toast('ไม่มีข้อมูลที่จะ Export', 'error'); return; }
+
+  rows.sort((a,b) => (a.ts||0)-(b.ts||0));
+  calcBalances(rows); // คำนวณ _mt, _sc ก่อน
+
+  const mat = MATERIALS.find(m => m.code === currentStockMat);
+  const matLabel = mat ? `${currentStockMat} | ${mat.name}` : currentStockMat;
+
+  const wb = XLSX.utils.book_new();
+
+  // --- Sheet 1: รายการ Stock ---
+  const header = [
+    'วันที่', 'ขอดำเนินการ', 'PD',
+    'กว้าง (mm)', 'ยาว (mm)',
+    'ยอด Estimate (แผ่น)',
+    'PD ที่ Reuse',
+    'ยอด ESTIMATE PD-MTsheet (สะสม)',
+    'ยอด ESTIMATE PD-Scrap (สะสม)',
+    'หมายเหตุ', 'ผู้ทำรายการ', 'สถานะ'
+  ];
+
+  const dataRows = rows.map(r => [
+    r.date || '',
+    r.action || '',
+    r.pd || '',
+    r.sizeW > 0 ? Number(r.sizeW) : '',
+    r.sizeL > 0 ? Number(r.sizeL) : '',
+    parseFloat((r.estimate||0).toFixed(4)),
+    r.reusePD || '',
+    parseFloat((r._mt||0).toFixed(4)),
+    parseFloat((r._sc||0).toFixed(4)),
+    r.remark || '',
+    r.operator || '',
+    statusText(r.status)
+  ]);
+
+  const ws = XLSX.utils.aoa_to_sheet([header, ...dataRows]);
+
+  // Column widths
+  ws['!cols'] = [
+    {wch:12},{wch:16},{wch:12},
+    {wch:10},{wch:10},
+    {wch:20},{wch:12},
+    {wch:24},{wch:24},
+    {wch:20},{wch:14},{wch:12}
+  ];
+
+  // Style header
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for (let C = range.s.c; C <= range.e.c; C++) {
+    const addr = XLSX.utils.encode_cell({ r: 0, c: C });
+    if (!ws[addr]) continue;
+    ws[addr].s = {
+      font:      { bold: true, color: { rgb: 'FFFFFF' } },
+      fill:      { fgColor: { rgb: '0F766E' } }, // teal header สำหรับ Stock
+      alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+      border: {
+        top:    { style: 'thin', color: { rgb: '5EEAD4' } },
+        bottom: { style: 'thin', color: { rgb: '5EEAD4' } },
+        left:   { style: 'thin', color: { rgb: '5EEAD4' } },
+        right:  { style: 'thin', color: { rgb: '5EEAD4' } }
+      }
+    };
+  }
+
+  // Zebra + color coding by action
+  const actionColors = {
+    'นำเข้า':        { even:'ECFDF5', odd:'D1FAE5' },
+    'นำออก Reuse':   { even:'EFF6FF', odd:'DBEAFE' },
+    'ทิ้ง Scrap':    { even:'FFFBEB', odd:'FEF3C7' },
+    'โอนทิ้ง Scrap': { even:'FFFBEB', odd:'FEF3C7' },
+    'โอนกลับ MT':    { even:'F0FDFA', odd:'CCFBF1' },
+  };
+
+  for (let R = 1; R <= dataRows.length; R++) {
+    const action = dataRows[R-1][1];
+    const palette = actionColors[action] || { even:'FFFFFF', odd:'F8FAFC' };
+    const fillColor = R % 2 === 0 ? palette.even : palette.odd;
+    for (let C = 0; C <= range.e.c; C++) {
+      const addr = XLSX.utils.encode_cell({ r: R, c: C });
+      if (!ws[addr]) ws[addr] = { t: 'z', v: '' };
+      ws[addr].s = {
+        fill:      { fgColor: { rgb: fillColor } },
+        alignment: { vertical: 'center' },
+        border: {
+          top:    { style: 'hair', color: { rgb: 'A7F3D0' } },
+          bottom: { style: 'hair', color: { rgb: 'A7F3D0' } },
+          left:   { style: 'hair', color: { rgb: 'A7F3D0' } },
+          right:  { style: 'hair', color: { rgb: 'A7F3D0' } }
+        }
+      };
+      if ([5,7,8].includes(C)) ws[addr].s.numFmt = '#,##0.0000';
+      if ([3,4].includes(C))   ws[addr].s.numFmt = '#,##0';
+    }
+  }
+
+  ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Stock Detail');
+
+  // --- Sheet 2: Summary ---
+  const approvedRows = rows.filter(r => r.status === 'approved');
+  let totalIn=0, totalReuse=0, totalScrap=0, totalTransferScrap=0, totalReturnMT=0;
+  approvedRows.forEach(r => {
+    const e = parseFloat(r.estimate||0);
+    if      (r.action === 'นำเข้า')        totalIn += e;
+    else if (r.action === 'นำออก Reuse')   totalReuse += e;
+    else if (r.action === 'ทิ้ง Scrap' || r.action === 'โอนทิ้ง Scrap') totalScrap += e;
+    else if (r.action === 'โอนกลับ MT')    totalReturnMT += e;
+  });
+  const finalMT = totalIn - totalReuse - totalScrap + totalReturnMT;
+  const finalSC = totalScrap - totalReturnMT;
+
+  const summaryData = [
+    ['PPS 563 | Metal Sheet Stock Summary'],
+    ['วัตถุดิบ:', matLabel],
+    ['Export วันที่:', new Date().toLocaleString('th-TH')],
+    [],
+    ['รายการ', 'ยอด Estimate (แผ่น)'],
+    ['นำเข้าทั้งหมด (อนุมัติ)',        parseFloat(totalIn.toFixed(4))],
+    ['นำออก Reuse ทั้งหมด (อนุมัติ)',  parseFloat(totalReuse.toFixed(4))],
+    ['ทิ้ง / โอน Scrap ทั้งหมด (อนุมัติ)', parseFloat(totalScrap.toFixed(4))],
+    ['โอนกลับ MT ทั้งหมด (อนุมัติ)',   parseFloat(totalReturnMT.toFixed(4))],
+    [],
+    ['ยอดคงเหลือ PD-MTsheet',  parseFloat(finalMT.toFixed(4))],
+    ['ยอดคงเหลือ PD-Scrap',    parseFloat(finalSC.toFixed(4))],
+    [],
+    ['หมายเหตุ: ยอดคำนวณจากรายการที่อนุมัติแล้วเท่านั้น']
+  ];
+
+  const ws2 = XLSX.utils.aoa_to_sheet(summaryData);
+  ws2['!cols'] = [{wch:36},{wch:22}];
+
+  // Style summary cells
+  const boldRows = [0, 4, 10, 11];
+  boldRows.forEach(r => {
+    ['A','B'].forEach(col => {
+      const addr = `${col}${r+1}`;
+      if (ws2[addr]) ws2[addr].s = { font: { bold: true } };
+    });
+  });
+  // Title
+  if (ws2['A1']) ws2['A1'].s = { font: { bold:true, sz:14, color:{ rgb:'0F766E' } } };
+  // Summary values
+  ['B11','B12'].forEach(addr => {
+    if (ws2[addr]) ws2[addr].s = {
+      font: { bold:true, sz:12, color:{ rgb:'1D4ED8' } },
+      numFmt: '#,##0.0000'
+    };
+  });
+  // Number format for data rows
+  for (let r = 5; r <= 12; r++) {
+    const addr = `B${r}`;
+    if (ws2[addr] && typeof ws2[addr].v === 'number') {
+      if (!ws2[addr].s) ws2[addr].s = {};
+      ws2[addr].s.numFmt = '#,##0.0000';
+    }
+  }
+
+  XLSX.utils.book_append_sheet(wb, ws2, 'Summary');
+
+  const dateStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  const safeMat = currentStockMat.replace(/[^A-Z0-9\-]/gi,'').slice(0,20);
+  XLSX.writeFile(wb, `PPS563_Stock_${safeMat}_${dateStr}.xlsx`, { bookType:'xlsx', type:'binary', cellStyles: true });
+  toast('Export Excel สำเร็จ ✓', 'success');
+}
+// ==================== EXPOSE GLOBALS (required for type="module") ====================
+// ES module scope ไม่ expose to global — ต้อง assign window เพื่อให้ onclick ใน HTML ใช้ได้
+Object.assign(window, {
+  doLogin, showLogoutConfirm, goToPage,
+  addP2Row, saveP2Rows, deleteSelectedP2, filterP2, bulkApprove,
+  requestDelete2, approveDelete2, updateSelInfo,
+  p2Field, updateP2Row,
+  loadStockTable, addP3Row, addP3TransferRow, saveP3Rows, deleteSelectedP3,
+  requestDelete3, approveDelete3,
+  p3Field, p3SizeChange, p3EstimateManual, p3EstimatePcsChange, p3ChangeAction, updateP3Row,
+  renderP4, exportP4Excel,
+  toggleNotif, readNotif, closeModal,
+  exportP2Excel, exportP3Excel,
+  updateRunningBalanceCells, isPcsMat
+});
+
+
+// ==================== SOUND EFFECTS ====================
+// ใช้ Web Audio API สร้างเสียงใน browser โดยตรง ไม่ต้องโหลดไฟล์เสียง
+
+function playSound(type = 'save') {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+    if (type === 'save') {
+      // เสียง "ting" สองโน้ต ขึ้นบันได — บันทึกสำเร็จ
+      const notes = [
+        { freq: 880, start: 0,    dur: 0.12, gain: 0.3 },
+        { freq: 1320, start: 0.13, dur: 0.18, gain: 0.25 }
+      ];
+      notes.forEach(({ freq, start, dur, gain }) => {
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+        gainNode.gain.setValueAtTime(0, ctx.currentTime + start);
+        gainNode.gain.linearRampToValueAtTime(gain, ctx.currentTime + start + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+        osc.start(ctx.currentTime + start);
+        osc.stop(ctx.currentTime + start + dur + 0.05);
+      });
+      // ปิด context หลังเสียงจบ
+      setTimeout(() => ctx.close(), 600);
+
+    } else if (type === 'notify') {
+      // เสียง "pop" เบาๆ — มีรายการใหม่เข้ามา real-time
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      osc.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(660, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.15);
+      gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.25);
+      setTimeout(() => ctx.close(), 400);
+
+    } else if (type === 'error') {
+      // เสียง "buzz" — error / ไม่เข้าใจ
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      osc.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(180, ctx.currentTime);
+      gainNode.gain.setValueAtTime(0.15, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.2);
+      setTimeout(() => ctx.close(), 400);
+    }
+  } catch (e) {
+    // ถ้า browser ไม่รองรับก็ไม่ทำอะไร
+    console.warn('playSound error:', e);
+  }
+}
+
+// ==================== VOICE COMMAND ENGINE ====================
+
+const VoiceEngine = (() => {
+  let recognition = null;
+  let isListening = false;
+  let lastParsed = null;
+  let currentPage = 2; // track which page is active
+
+  // ---- Init SpeechRecognition ----
+  function init() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast('Browser นี้ไม่รองรับ Voice (ใช้ Chrome)', 'error');
+      return false;
+    }
+    recognition = new SpeechRecognition();
+    recognition.lang = 'th-TH';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 3;
+
+    recognition.onstart = () => {
+      isListening = true;
+      setStatus('กำลังฟัง...', '#ef4444', true);
+      document.getElementById('voiceTranscript').textContent = '🎙️ กำลังฟัง...';
+    };
+
+    recognition.onresult = (e) => {
+      let interim = '', final = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) final += e.results[i][0].transcript;
+        else interim += e.results[i][0].transcript;
+      }
+      const text = (final || interim).trim();
+      document.getElementById('voiceTranscript').textContent = text || '...';
+      if (final) handleFinalTranscript(final.trim());
+    };
+
+    recognition.onerror = (e) => {
+      isListening = false;
+      const btn2 = document.getElementById('voiceNavBtn2');
+      const btn3 = document.getElementById('voiceNavBtn3');
+      if (btn2) btn2.style.color = '';
+      if (btn3) btn3.style.color = '';
+
+      if (e.error === 'not-allowed') {
+        // ตรวจว่าเปิดจาก file:// หรือเปล่า
+        if (location.protocol === 'file:') {
+          setStatus('❌ ต้องเปิดผ่าน https://', 'var(--red)', false);
+          document.getElementById('voiceTranscript').innerHTML =
+            `<strong style="color:var(--red);">ไม่สามารถใช้ไมค์จาก file:// ได้</strong><br><br>
+            วิธีแก้:<br>
+            1. อัปโหลดไฟล์ขึ้น <a href="https://drive.google.com" target="_blank" style="color:var(--accent-light);">Google Drive</a><br>
+            2. เปิดผ่าน <a href="https://pages.github.com" target="_blank" style="color:var(--accent-light);">GitHub Pages</a><br>
+            3. หรือใช้ VS Code Live Server<br><br>
+            <span style="font-size:10px;color:var(--text3);">Chrome บล็อก microphone จาก local file โดยอัตโนมัติ</span>`;
+        } else {
+          setStatus('❌ ถูกบล็อก — กดอนุญาตไมค์', 'var(--red)', false);
+          document.getElementById('voiceTranscript').innerHTML =
+            `<strong style="color:var(--orange);">ไม่ได้รับอนุญาตไมค์</strong><br><br>
+            วิธีแก้:<br>
+            1. คลิก 🔒 ใน address bar<br>
+            2. เลือก Microphone → Allow<br>
+            3. Reload หน้าแล้วลองใหม่`;
+        }
+      } else if (e.error === 'network') {
+        setStatus('❌ ไม่มี Internet', 'var(--red)', false);
+        document.getElementById('voiceTranscript').textContent = 'Web Speech API ต้องการ Internet ครับ';
+      } else if (e.error === 'no-speech') {
+        setStatus('ไม่ได้ยินเสียง ลองใหม่', 'var(--orange)', false);
+        document.getElementById('voiceTranscript').textContent = 'ไม่ได้ยินเสียง กรุณาพูดใกล้ไมค์กว่านี้';
+      } else {
+        setStatus('เกิดข้อผิดพลาด: ' + e.error, 'var(--red)', false);
+      }
+    };
+
+    recognition.onend = () => {
+      isListening = false;
+      if (document.getElementById('voiceStatusDot').dataset.pulse === '1')
+        setStatus('ประมวลผล...', 'var(--orange)', false);
+    };
+    return true;
+  }
+
+  function setStatus(txt, color, pulse) {
+    const dot = document.getElementById('voiceStatusDot');
+    dot.style.background = color;
+    dot.dataset.pulse = pulse ? '1' : '0';
+    dot.style.animation = pulse ? 'pulse 0.8s ease infinite' : 'none';
+    document.getElementById('voiceStatusTxt').textContent = txt;
+  }
+
+  // ---- normalise text ----
+  function norm(t) {
+    return t.toLowerCase()
+      // เลขไทย→อาหรับ (ต้องทำก่อน)
+      .replace(/ศูนย์/g,'0').replace(/หนึ่ง/g,'1').replace(/สอง/g,'2')
+      .replace(/สาม/g,'3').replace(/สี่|สี(?=\s|$)/g,'4').replace(/ห้า/g,'5')
+      .replace(/หก/g,'6').replace(/เจ็ด/g,'7').replace(/แปด/g,'8').replace(/เก้า/g,'9')
+      // เลขหลักสิบ (ต้องก่อน "สิบ" เดี่ยว)
+      .replace(/ยี่สิบ/g,'20').replace(/สามสิบ/g,'30').replace(/สี่สิบ/g,'40')
+      .replace(/ห้าสิบ/g,'50').replace(/หกสิบ/g,'60').replace(/เจ็ดสิบ/g,'70')
+      .replace(/แปดสิบ/g,'80').replace(/เก้าสิบ/g,'90')
+      .replace(/สิบ(?!\s*\d)/g,'10').replace(/สิบ\s*(\d)/g,'1$1')
+      // จุดทศนิยม
+      .replace(/จุด/g,'.')
+      // PD / BOM / Reuse
+      .replace(/พีดี|พี\s*ดี/g,'pd')
+      .replace(/บีโอเอ็ม|บีโอเอม|บอม/g,'bom')
+      .replace(/รียูส|รี\s*ยูส|รีย[ูุ]ส/g,'reuse')
+      // วัสดุ
+      .replace(/สแตนเลส|สเตนเลส|สเตน(?=\s|$)|สแตน(?=\s|$)/g,'stainless')
+      .replace(/อลูมิเนียม|อะลูมิเนียม|อลู(?=\s|$)/g,'aluminium')
+      .replace(/กัลวาไนซ์|ชุบสังกะสี|ชุบ\s*สังกะสี/g,'galvanize')
+      .replace(/ทองแดง/g,'copper')
+      // เบอร์/gauge
+      .replace(/เบอร์/g,'#')
+      // estimate / pcs / scrap
+      .replace(/เอสติเมต|เอสติเมท|เอสทิเมต/g,'estimate')
+      .replace(/พีซีเอส|พีซี\s*เอส/g,'pcs')
+      .replace(/สแครป|สแคร็ป|แสครป/g,'scrap')
+      // action shortcuts
+      .replace(/นำออก\s*รียูส/g,'นำออก reuse')
+      .replace(/ทิ้ง\s*สแครป/g,'ทิ้ง scrap')
+      .trim();
+  }
+
+  // ---- detect current page ----
+  function detectPage() {
+    if (document.getElementById('page3').classList.contains('active')) return 3;
+    return 2;
+  }
+
+  // ===================== PARSE PAGE 2 =====================
+  function parseP2(raw) {
+    const t = norm(raw);
+    const result = {};
+
+    // ---- helper: ดึงตัวเลข (รองรับทั้งไทยและอาหรับ หลัง norm แล้ว) ----
+    function getNum(str) {
+      const m = str.match(/([\d]+(?:\.[\d]+)?)/);
+      return m ? m[1] : null;
+    }
+
+    // ================================================================
+    // 1. เพิ่มรายการ / สั่งบันทึก (ตรวจก่อนเสมอ)
+    // ================================================================
+    if (/เพิ่มรายการ|เพิ่มแถว|รายการใหม่|new\s*row|add\s*row/.test(t))
+      result._addRow = true;
+    if (/บันทึก|save|เซฟ/.test(t))
+      result._save = true;
+
+    // ================================================================
+    // 2. วันที่
+    // รูปแบบ: "วันที่วันนี้" / "วันนี้" / "วันที่ 23 5" / "วันที่ 23/5"
+    // ================================================================
+    if (/วันนี้|today|วันที่\s*วันนี้/.test(t)) {
+      result.date = today();
+    } else {
+      // "วันที่ 23 5" หรือ "วันที่ 23/5/68"
+      const dm = t.match(/วันที่\s*(\d{1,2})[\s\/\-](\d{1,2})(?:[\s\/\-](\d{2,4}))?/);
+      if (dm) {
+        const d = String(dm[1]).padStart(2,'0');
+        const mo = String(dm[2]).padStart(2,'0');
+        let y = dm[3] ? parseInt(dm[3]) : new Date().getFullYear();
+        if (y < 100) y += 2500; // พ.ศ. → ค.ศ.
+        if (y > 2400) y -= 543;
+        result.date = `${y}-${mo}-${d}`;
+      }
+    }
+
+    // ================================================================
+    // 3. PD Number
+    // รูปแบบ: "พีดี 26003298" / "PD26003298" / "PD 2600 5213" (มี space)
+    //          "พีดีสองหกศูนย์ศูนย์ห้าสองหนึ่งสาม" (เลขไทยต่อกัน → norm แล้ว)
+    //          "column PD 26003298" / "พีดีหมายเลข 26003298"
+    // ================================================================
+    {
+      // ดึง raw ก่อน norm เพื่อจับตัวเลขจริง
+      // regex รองรับ PD + เลข/ตัวอักษร ที่อาจมี space คั่น แล้ว join ทีหลัง
+      const pdR = raw.match(/(?:column\s*)?(?:พีดี|PD)\s*(?:หมายเลข|เลขที่|ที่|:)?\s*([A-Z0-9](?:[\s\-]?[A-Z0-9]){2,19})/i);
+      if (pdR) {
+        // ลบ space ที่คั่นระหว่างตัวเลขออก เพื่อให้ได้ตัวเลขต่อเนื่อง
+        result.pd = pdR[1].replace(/\s+/g,'').toUpperCase().trim();
+      } else {
+        // fallback: จาก t หลัง norm (เลขไทย→อาหรับแล้ว)
+        const pdT = t.match(/pd\s*(?:หมายเลข|เลขที่|:)?\s*([\d][a-z0-9\s\-]{2,24})/i);
+        if (pdT) {
+          result.pd = pdT[1].replace(/\s+/g,'').toUpperCase().trim().substring(0,20);
+        }
+      }
+    }
+
+    // ================================================================
+    // 4. แบบ (ชื่อแบบ / drawing name)
+    // รูปแบบ: "แบบ DS-35545" / "ชื่อแบบ ABC-001" / "column แบบ XYZ"
+    //          "แบบกรอก DS" / "แบบ ดีเอส 35545" / "แบบ ดีเอสสามห้าห้าสี่ห้า"
+    // หยุดตรงคำ keyword ถัดไปหรือจบประโยค
+    // ================================================================
+    {
+      const stopWords = '(?:จำนวน|วัตถุดิบ|บอม|bom|รียูส|reuse|จำนวนเบิก|ได้รับ|ขอดำเนินการ|นำเข้า|ทิ้ง|นำออก|บันทึก|save)';
+      let mv = null;
+      // p1: "แบบ|ชื่อแบบ" + optional "กรอก" + ค่า + stop
+      const mp1 = raw.match(new RegExp(`(?:ชื่อ)?แบบ\\s+(?:กรอก\\s+)?(.{2,40}?)(?=\\s+${stopWords}|\\s*$)`, 'i'));
+      if (mp1) mv = mp1[1].trim();
+      // p2: "column แบบ" + ค่า
+      if (!mv) {
+        const mp2 = raw.match(/column\s*(?:ที่)?แบบ\s+(.{2,40}?)(?=\s|$)/i);
+        if (mp2) mv = mp2[1].trim();
+      }
+      // ตัด trailing keyword
+      if (mv) {
+        mv = mv.replace(new RegExp(`\\s+${stopWords}.*$`, 'i'), '').trim();
+        if (mv.length >= 2) result.model = mv;
+      }
+    }
+
+    // ================================================================
+    // 5. Qty. (จำนวน)
+    // รูปแบบ: "จำนวน 25" / "qty 25" / "จำนวนชิ้น 10" / "column จำนวน 25"
+    // ================================================================
+    {
+      const qm = t.match(/(?:column\s*)?(?:qty|จำนวน(?:ชิ้น|อัน|แผ่น)?)\s*([\d]+)/i);
+      if (qm) result.qty = qm[1];
+    }
+
+    // ================================================================
+    // 6. ชื่อวัตถุดิบ
+    // ================================================================
+    result.matCode = matchMaterial(raw, t);
+
+    // ================================================================
+    // 7. BOM
+    // รูปแบบ: "บอม 0.58" / "BOM 2.5" / "bom ศูนย์จุดห้าแปด"
+    //          "column BOM 0.58" / "บีโอเอ็ม 1.5"
+    // ================================================================
+    {
+      // BOMใช้งาน ต้อง match ก่อน (เฉพาะเจาะจงกว่า)
+      const bum = t.match(/bom\s*ใช้งาน\s*([\d\.]+)/i);
+      if (bum) {
+        result.bom = bum[1];
+      } else {
+        const bm = t.match(/(?:column\s*)?(?:bom|บอม|บีโอเอ็ม)\s*([\d\.]+)/i);
+        if (bm) result.bom = bm[1];
+      }
+    }
+
+    // ================================================================
+    // 8. Reuse
+    // รูปแบบ: "รียูส 0.35" / "reuse 0" / "reuse ไม่มี" / "reuse ศูนย์"
+    //          "column reuse 0.35"
+    // ================================================================
+    {
+      if (/(?:reuse|รียูส)\s*(?:ไม่มี|ไม่มีค่า|ไม่ใช้|ศูนย์$|0$)/.test(t)) {
+        result.reuse = '0';
+      } else {
+        const rm = t.match(/(?:column\s*)?(?:reuse|รียูส)\s*([\d\.]+)/i);
+        if (rm) result.reuse = rm[1];
+      }
+    }
+
+    // ================================================================
+    // 9. PD ที่นำมา Reuse
+    // รูปแบบ: "รียูส พีดี 26003121" / "PD ที่นำมา reuse 26003121"
+    //          "reuse จาก PD 26003121"
+    // ================================================================
+    {
+      const rpm = raw.match(/(?:รียูส|reuse)\s*(?:พีดี|pd|จาก\s*(?:พีดี|pd))\s*([A-Z0-9\-]{3,20})/i)
+        || raw.match(/(?:พีดี|pd)\s*(?:ที่นำมา|ที่)\s*(?:รียูส|reuse)\s*([A-Z0-9\-]{3,20})/i)
+        || raw.match(/(?:นำมา\s*)?(?:รียูส|reuse)\s*(?:พีดี|pd)\s*([A-Z0-9\-]{3,20})/i);
+      if (rpm) result.reusePD = rpm[1].toUpperCase();
+    }
+
+    // ================================================================
+    // 10. BOMใช้งาน (column ชื่อ "BOMใช้งาน" = BOM - Reuse)
+    // รูปแบบ: "บอมใช้งาน 0.45" / "BOM ใช้งาน 1.2"
+    // ================================================================
+    // (จัดการแล้วในข้อ 7)
+
+    // ================================================================
+    // 11. จำนวนเบิก
+    // รูปแบบ: "จำนวนเบิก 2" / "เบิก 2 แผ่น" / "column จำนวนเบิก 2"
+    // ================================================================
+    {
+      const im = t.match(/(?:column\s*)?(?:จำนวน(?:ที่)?เบิก|เบิก)\s*([\d\.]+)/i);
+      if (im) result.issued = im[1];
+    }
+
+    // ================================================================
+    // 12. จำนวนที่ได้รับ
+    // รูปแบบ: "ได้รับ 2" / "จำนวนได้รับ 3" / "รับมา 2" / "column ได้รับ 2"
+    // ================================================================
+    {
+      const recm = t.match(/(?:column\s*)?(?:จำนวน(?:ที่)?ได้รับ|ได้รับ|รับมา)\s*([\d\.]+)/i);
+      if (recm) result.received = recm[1];
+    }
+
+    // ================================================================
+    // 13. ขอดำเนินการ / Action
+    // รูปแบบ: "นำเข้า" / "ขอดำเนินการนำเข้า" / "ทิ้ง Scrap" / "นำออก Reuse"
+    //          "action นำเข้า" / "column ขอดำเนินการ นำเข้า"
+    // ================================================================
+    {
+      // ตรวจเฉพาะเจาะจงก่อน
+      if (/นำออก\s*(?:reuse|รียูส)|ขอดำเนินการ\s*นำออก/.test(t))
+        result.action = 'นำออก Reuse';
+      else if (/ทิ้ง\s*(?:scrap|สแครป)|ขอดำเนินการ\s*ทิ้ง/.test(t))
+        result.action = 'ทิ้ง Scrap';
+      else if (/(?:ขอดำเนินการ\s*)?นำเข้า/.test(raw))
+        result.action = 'นำเข้า';
+    }
+
+    return result;
+  }
+
+  // ===================== PARSE PAGE 3 =====================
+  function parseP3(raw) {
+    const t = norm(raw);
+    const result = {};
+
+    // ================================================================
+    // 1. เพิ่มรายการ / บันทึก
+    // ================================================================
+    if (/เพิ่มรายการ|เพิ่มแถว|รายการใหม่|new\s*row|add\s*row/.test(t))
+      result._addRow = true;
+    if (/บันทึก|save|เซฟ/.test(t))
+      result._save = true;
+
+    // ================================================================
+    // 2. วันที่ (เหมือนหน้า 2)
+    // ================================================================
+    if (/วันนี้|today|วันที่\s*วันนี้/.test(t)) {
+      result.date = today();
+    } else {
+      const dm = t.match(/วันที่\s*(\d{1,2})[\s\/\-](\d{1,2})(?:[\s\/\-](\d{2,4}))?/);
+      if (dm) {
+        const d = String(dm[1]).padStart(2,'0');
+        const mo = String(dm[2]).padStart(2,'0');
+        let y = dm[3] ? parseInt(dm[3]) : new Date().getFullYear();
+        if (y < 100) y += 2500;
+        if (y > 2400) y -= 543;
+        result.date = `${y}-${mo}-${d}`;
+      }
+    }
+
+    // ================================================================
+    // 3. PD Number (เหมือนหน้า 2 — รองรับ space คั่นในตัวเลข)
+    // ================================================================
+    {
+      const pdR = raw.match(/(?:column\s*)?(?:พีดี|PD)\s*(?:หมายเลข|เลขที่|ที่|:)?\s*([A-Z0-9](?:[\s\-]?[A-Z0-9]){2,19})/i);
+      if (pdR) {
+        result.pd = pdR[1].replace(/\s+/g,'').toUpperCase().trim();
+      } else {
+        const pdT = t.match(/pd\s*(?:หมายเลข|เลขที่|:)?\s*([\d][a-z0-9\s\-]{2,24})/i);
+        if (pdT) result.pd = pdT[1].replace(/\s+/g,'').toUpperCase().trim().substring(0,20);
+      }
+    }
+
+    // ================================================================
+    // 4. ขอดำเนินการ / Action
+    // รูปแบบ: "นำเข้า" / "นำออก reuse" / "ทิ้ง scrap"
+    //          "โอนทิ้ง" (admin) / "โอนกลับ" (admin)
+    //          "ขอดำเนินการ นำเข้า" / "action นำเข้า"
+    // ================================================================
+    {
+      if (/นำออก\s*(?:reuse|รียูส)|ขอดำเนินการ\s*นำออก/.test(t))
+        result.action = 'นำออก Reuse';
+      else if (/ทิ้ง\s*(?:scrap|สแครป)|ขอดำเนินการ\s*ทิ้ง/.test(t))
+        result.action = 'ทิ้ง Scrap';
+      else if (/โอน(?:กลับ|คืน)\s*(?:mt|เอ็มที|mtsheet|เอ็มทีชีท)?/.test(t))
+        result.action = 'โอนกลับ MT';
+      else if (/โอนทิ้ง|โอน\s*(?:scrap|สแครป)/.test(t))
+        result.action = 'โอนทิ้ง Scrap';
+      else if (/(?:ขอดำเนินการ\s*)?นำเข้า/.test(raw))
+        result.action = 'นำเข้า';
+    }
+
+    // ================================================================
+    // 5. วัตถุดิบ
+    // ================================================================
+    const matCode = matchMaterial(raw, t);
+    if (matCode) result.matCode = matCode;
+
+    // ================================================================
+    // 6. ขนาด กว้าง × ยาว
+    // รูปแบบ: "กว้าง 600 ยาว 800" / "600 คูณ 800" / "ขนาด 600x800"
+    //          "กว้าง 600" + "ยาว 800" แยกกัน / "600 x 800 มม"
+    // ================================================================
+    {
+      // "NNN คูณ/x NNN" หรือ "ขนาด NNN x NNN"
+      const sizeXY = t.match(/(?:ขนาด\s*)?(\d+)\s*(?:x|คูณ|ต่อ)\s*(\d+)/i);
+      if (sizeXY) {
+        result.sizeW = sizeXY[1];
+        result.sizeL = sizeXY[2];
+      } else {
+        // "กว้าง NNN" และ "ยาว NNN" แยกกัน
+        const wm = t.match(/(?:กว้าง|ความกว้าง|width)\s*(\d+)/i);
+        const lm = t.match(/(?:ยาว|ความยาว|length)\s*(\d+)/i);
+        if (wm) result.sizeW = wm[1];
+        if (lm) result.sizeL = lm[1];
+      }
+    }
+
+    // ================================================================
+    // 7. ยอด Estimate (แผ่น) — สำหรับวัตถุดิบแผ่น
+    // รูปแบบ: "ยอด 0.5" / "estimate 0.5" / "ยอดเอสติเมต 0.5"
+    //          "ยอดแผ่น 0.5" / "กรอกยอด 0.5"
+    // ================================================================
+    {
+      const em = t.match(/(?:ยอด(?:แผ่น|estimate)?|estimate|เอสติเมต|กรอกยอด)\s*([\d\.]+)/i);
+      if (em) result.estimate = em[1];
+    }
+
+    // ================================================================
+    // 8. ยอด Estimate (pcs.) — สำหรับวัตถุดิบ pcs
+    // รูปแบบ: "100 pcs" / "pcs 100" / "100 ชิ้น" / "ยอด 100 ชิ้น"
+    //          "พีซีเอส 100" / "จำนวนชิ้น 100"
+    // ================================================================
+    {
+      const pm = t.match(/(\d+)\s*(?:pcs|พีซีเอส|ชิ้น|อัน)/i)
+        || t.match(/(?:pcs|พีซีเอส|จำนวนชิ้น)\s*(\d+)/i);
+      if (pm) result.estimatePcs = pm[1];
+    }
+
+    // ================================================================
+    // 9. PD ที่ Reuse
+    // รูปแบบ: "รียูส พีดี 26003121" / "PD ที่ reuse 26003121"
+    //          "reuse จาก พีดี 26003121"
+    // ================================================================
+    {
+      const rpm = raw.match(/(?:รียูส|reuse)\s*(?:พีดี|pd|จาก\s*(?:พีดี|pd))\s*([A-Z0-9\-]{3,20})/i)
+        || raw.match(/(?:พีดี|pd)\s*(?:ที่|ที่นำมา)\s*(?:รียูส|reuse)\s*([A-Z0-9\-]{3,20})/i);
+      if (rpm) result.reusePD = rpm[1].toUpperCase();
+    }
+
+    // ================================================================
+    // 10. หมายเหตุ
+    // รูปแบบ: "หมายเหตุ ข้อความ" / "note ข้อความ" / "โน้ต ข้อความ"
+    // ================================================================
+    {
+      const remm = raw.match(/(?:หมายเหตุ|note|โน้ต)\s+(.{2,60}?)(?=\s+(?:บันทึก|save)|$)/i);
+      if (remm) result.remark = remm[1].trim();
+    }
+
+    return result;
+  }
+
+  // ===================== MATERIAL MATCHER =====================
+  function matchMaterial(raw, t) {
+    // 1. ตรวจ keyword กลุ่มวัตถุดิบ
+    const groups = [
+      // Aluminium
+      { test: /aluminium|อลูมิเนียม/, sub: (t,r) => matchAluminium(t,r) },
+      // Stainless
+      { test: /stainless|สแตนเลส|สเตนเลส/, sub: (t,r) => matchStainless(t,r) },
+      // Galvanize / เหล็กชุบ
+      { test: /galvanize|สังกะสี|เหล็กชุบ/, sub: (t,r) => matchGalvanize(t,r) },
+      // เหล็กดำ
+      { test: /เหล็กดำ/, sub: () => 'RMM3H-5XX122244AX' },
+      // เหล็กขาว
+      { test: /เหล็กขาว/, sub: () => 'RMM3W-X6X122244AX' },
+      // ทองแดง / copper
+      { test: /copper|ทองแดง/, sub: (t,r) => matchCopper(t,r) },
+      // รีเวท Nut Roller
+      { test: /roller|โรลเลอร์/, sub: () => 'CP-FWBXX8-XXX006AA' },
+      // รีเวท Nut BEM/SEM/HEX
+      { test: /(?:รีเวท|rivet)\s*nut|bem|sem|hex\s*m/, sub: (t,r) => matchRivetNut(t,r) },
+      // Nut Spot
+      { test: /nut\s*spot|นัท\s*สปอต/, sub: (t,r) => matchNutSpot(t,r) },
+      // รีเวท (ขนาด)
+      { test: /(?:รีเวท|rivet)\s*(?:ขนาด|size)/, sub: (t,r) => matchRivetSize(t,r) },
+    ];
+
+    for (const g of groups) {
+      if (g.test.test(t) || g.test.test(raw.toLowerCase())) {
+        const code = g.sub(t, raw);
+        if (code) return code;
+      }
+    }
+    // 2. direct code match e.g. "RMM3S-15X122244AC"
+    const codeMatch = raw.match(/\b(RMM3[A-Z]-[A-Z0-9X]+)\b/i);
+    if (codeMatch) {
+      const found = MATERIALS.find(m => m.code.toLowerCase() === codeMatch[1].toLowerCase());
+      if (found) return found.code;
+    }
+    return null;
+  }
+
+  // helper: extract thickness — รองรับ "1.5 มม" / "1จุด5มิล" / "หนึ่งจุดห้ามิล" (หลัง norm แล้ว)
+  function getThk(t) {
+    // จับ decimal thickness เช่น 1.5, 0.9, 1.2
+    const m = t.match(/([\d]+\.[\d]+)\s*(?:มิล|มม|mm)/i)
+      || t.match(/หนา\s*([\d]+\.[\d]+)/i)
+      || t.match(/([\d]+\.[\d]+)\s*(?:มิล|มม|mm)?/i); // fallback ไม่มีหน่วย
+    if (m) return parseFloat(m[1]);
+    // จับ integer thickness เช่น "2 มม" / "3 มิล"
+    const m2 = t.match(/([\d]+)\s*(?:มิล|มม|mm)/i) || t.match(/หนา\s*([\d]+)/i);
+    if (m2) return parseFloat(m2[1]);
+    return null;
+  }
+
+  // helper: extract gauge/เบอร์ — รองรับ "#18" / "เบอร์18" / "สิบแปด" ที่ norm แล้วเป็น "18"
+  // ต้องจับ #NN ก่อน เพราะใน norm "เบอร์" → "#"
+  function getGauge(t) {
+    // จับ "#16" / "#20" ฯลฯ ก่อน (เกิดจาก norm แปลง เบอร์→# แล้ว)
+    const m = t.match(/#\s*(\d{1,2})\b/);
+    if (m) return parseInt(m[1]);
+    // จับ "เบอร์ 16" ที่อาจยังไม่ได้ norm (raw path)
+    const m2 = t.match(/เบอร์\s*(\d{1,2})\b/);
+    if (m2) return parseInt(m2[1]);
+    return null;
+  }
+
+  // helper: extract sheet size (4x8, 5x10 etc.)
+  function getSheetSize(t) {
+    // "4 x 8" / "4x8" / "สี่x แปด"
+    const m = t.match(/(\d+)\s*[xX]\s*(\d+)/);
+    if (m) return { w: parseInt(m[1]), l: parseInt(m[2]) };
+    if (/สี่\s*(?:คูณ|x)\s*แปด/.test(t))   return { w: 4, l: 8 };
+    if (/ห้า\s*(?:คูณ|x)\s*สิบ/.test(t))   return { w: 5, l: 10 };
+    if (/สี่\s*(?:คูณ|x)\s*สิบ/.test(t))   return { w: 4, l: 10 };
+    // จาก norm: "4 8" อาจไม่มี x แต่มาจาก "4 x 8"
+    return null;
+  }
+
+  // helper: ค้นหา thkKey จาก gauge หรือ thickness พร้อม validate
+  // คืน { thkKey, matchedBy } หรือ null
+  function resolveThkKey(t, thkMapObj, gaugeMapObj) {
+    const g = getGauge(t);
+    const thk = getThk(t);
+    // gauge priority สูงกว่า thickness เพราะพูดชัดกว่า
+    if (g && gaugeMapObj[g]) return { thkKey: gaugeMapObj[g], by: 'gauge', val: g };
+    if (thk && thkMapObj[thk]) return { thkKey: thkMapObj[thk], by: 'thk', val: thk };
+    return null;
+  }
+
+  function matchAluminium(t, raw) {
+    const sz = getSheetSize(t);
+    const candidates = MATERIALS.filter(m => m.code.startsWith('RMM3A'));
+    const thkMap   = { 0.9:'X9X', 1.2:'12X', 1.5:'15X', 2:'2XX', 3:'3XX' };
+    const gaugeMap = { 20:'X9X',  18:'12X',  16:'15X', 14:'2XX', 11:'3XX' };
+    const res = resolveThkKey(t, thkMap, gaugeMap);
+    if (res) {
+      const { thkKey } = res;
+      if (sz?.w === 5)   return candidates.find(m => m.code.includes(thkKey) && m.code.includes('150'))?.code || null;
+      if (sz?.l === 10)  return candidates.find(m => m.code.includes(thkKey) && m.code.includes('305'))?.code || null;
+      return candidates.find(m => m.code.includes(thkKey) && m.code.includes('244'))?.code || null;
+    }
+    // ไม่มีข้อมูลหนา/เบอร์ → คืน null (ไม่ fallback สุ่ม)
+    return null;
+  }
+
+  function matchStainless(t, raw) {
+    const sz = getSheetSize(t);
+    const is316      = /316/.test(raw);
+    const isHairline = /hairline|แฮร์ไลน์/.test(t);
+    const candidates = MATERIALS.filter(m => m.code.startsWith('RMM3S'));
+    const gradeKey   = is316 ? 'AD' : isHairline ? 'AE' : 'AC';
+    const thkMap   = { 1.0:'1XX', 1.2:'12X', 1.5:'15X', 2:'2XX', 3:'3XX' };
+    const gaugeMap = { 20:'1XX',  18:'12X',  16:'15X', 14:'2XX', 11:'3XX' };
+    const res = resolveThkKey(t, thkMap, gaugeMap);
+    if (res) {
+      const { thkKey } = res;
+      const sizeKey = sz?.w === 5 ? '150' : sz?.l === 10 ? '305' : '244';
+      // match grade ตรง
+      const found = candidates.find(m =>
+        m.code.includes(thkKey) && m.code.includes(sizeKey) && m.code.endsWith(gradeKey)
+      );
+      if (found) return found.code;
+      // fallback: ไม่สนใจ grade
+      return candidates.find(m => m.code.includes(thkKey) && m.code.includes(sizeKey))?.code || null;
+    }
+    return null;
+  }
+
+  function matchGalvanize(t, raw) {
+    const sz = getSheetSize(t);
+    const candidates = MATERIALS.filter(m => m.code.startsWith('RMM3G'));
+    const thkMap   = { 0.5:'X5X', 0.9:'X9X', 1.2:'12X', 1.6:'16X', 2:'2XX', 3:'3XX' };
+    const gaugeMap = { 25:'X5X',  20:'X9X',  18:'12X',  16:'16X', 14:'2XX', 11:'3XX' };
+    const res = resolveThkKey(t, thkMap, gaugeMap);
+    if (res) {
+      const { thkKey } = res;
+      const sizeKey = sz?.l === 10 ? '305' : '244';
+      return candidates.find(m => m.code.includes(thkKey) && m.code.includes(sizeKey))?.code || null;
+    }
+    return null;
+  }
+
+  function matchCopper(t, raw) {
+    const thk = getThk(t);
+    if (thk === 1) return 'RMM3C-1XX122061AX';
+    if (thk === 1.5) return 'RMM3C-15X122061AX';
+    if (thk === 2) return 'RMM3C-2XX122244AX';
+    return 'RMM3C-1XX122061AX';
+  }
+
+  function matchRivetNut(t, raw) {
+    // หา M size
+    const mMatch = raw.match(/m\s*(\d+)/i) || t.match(/m\s*(\d+)/);
+    const mSize = mMatch ? parseInt(mMatch[1]) : null;
+    const isSS = /สเตนเลส|สแตนเลส|stainless|ss/.test(t);
+    const isAlu = /alu|อลู/.test(t);
+    const isHex = /hex|เฮกซ์/.test(t);
+    const isBEM = /bem/.test(t);
+    const isSEM = /sem/.test(t);
+    const isFlat = /หัวแบน/.test(raw);
+    const isTaper = /เตเปอร์/.test(raw);
+
+    const candidates = MATERIALS.filter(m => m.code.startsWith('SSNB'));
+    // filter by material
+    let pool = candidates;
+    if (isSS) pool = pool.filter(m => m.code.includes('X1'));
+    else if (isAlu) pool = pool.filter(m => m.code.includes('X6'));
+    else pool = pool.filter(m => m.code.includes('X3'));
+
+    if (mSize) {
+      const mMap = {4:'04',5:'05',6:'06',8:'08',10:'10'};
+      const mk = mMap[mSize];
+      if (mk) pool = pool.filter(m => m.code.includes(`XXX${mk}`));
+    }
+    if (isHex) pool = pool.filter(m => m.name.includes('HEX'));
+    else if (isBEM) pool = pool.filter(m => m.name.includes('BEM'));
+    else if (isSEM) pool = pool.filter(m => m.name.includes('SEM'));
+    if (isFlat) pool = pool.filter(m => m.name.includes('หัวแบน'));
+    if (isTaper) pool = pool.filter(m => m.name.includes('เตเปอร์'));
+
+    return pool[0]?.code || null;
+  }
+
+  function matchNutSpot(t, raw) {
+    const mMatch = raw.match(/m\s*(\d+)/i) || t.match(/m\s*(\d+)/);
+    const mSize = mMatch ? parseInt(mMatch[1]) : null;
+    const isSS = /สเตนเลส|สแตนเลส|stainless/.test(t);
+    const candidates = MATERIALS.filter(m => m.code.startsWith('SSNA'));
+    let pool = isSS ? candidates.filter(m=>m.code.includes('X1')) : candidates.filter(m=>m.code.includes('X3'));
+    if (mSize) {
+      const mMap = {4:'04',5:'05',6:'06',8:'08',10:'10',12:'12'};
+      const mk = mMap[mSize];
+      if (mk) pool = pool.filter(m => m.code.includes(`XXX${mk}`));
+    }
+    return pool[0]?.code || null;
+  }
+
+  function matchRivetSize(t, raw) {
+    const isSS = /\(\s*ss\s*\)|stainless|ss\s*\)/.test(t);
+    const isAlu = /alu|อลู/.test(t);
+    const size316 = /3\/16|สามสิบสี่/.test(raw);
+    const size18 = /1\/8|หนึ่งแปด/.test(raw);
+    const candidates = MATERIALS.filter(m => m.code.startsWith('SSRA'));
+    let pool = candidates;
+    if (isSS) pool = pool.filter(m => m.code.includes('X1'));
+    else if (isAlu) pool = pool.filter(m => m.code.includes('X6'));
+    if (size316) pool = pool.filter(m => m.code.includes('X47'));
+    else if (size18) pool = pool.filter(m => m.code.includes('X31'));
+    const is12 = /1\/2|ครึ่ง/.test(raw);
+    const is38 = /3\/8|สามแปด/.test(raw);
+    if (is12) pool = pool.filter(m => m.code.includes('127'));
+    else if (is38) pool = pool.filter(m => m.code.includes('95'));
+    return pool[0]?.code || null;
+  }
+
+  // ===================== APPLY TO FORM =====================
+  function applyToP2(parsed) {
+    if (parsed._addRow) {
+      addP2Row();
+    }
+    const rows = p2Rows.filter(r => r.isNew);
+    if (!rows.length) { toast('ไม่มีแถวใหม่ กรุณาเพิ่มรายการก่อน', 'error'); return false; }
+    const row = rows[0]; // apply to latest new row
+    const id = row.id;
+    if (parsed.date)     { row.date = parsed.date;       }
+    if (parsed.pd)       { row.pd = parsed.pd;           }
+    if (parsed.model)    { row.model = parsed.model;     }
+    if (parsed.qty)      { row.qty = parsed.qty;         }
+    if (parsed.matCode)  { row.matCode = parsed.matCode; }
+    if (parsed.bom)      { row.bom = parsed.bom;         }
+    if (parsed.reuse)    { row.reuse = parsed.reuse;     }
+    if (parsed.reusePD)  { row.reusePD = parsed.reusePD;}
+    if (parsed.issued)   { row.issued = parsed.issued;   }
+    if (parsed.received) { row.received = parsed.received;}
+    if (parsed.action)   { row.action = parsed.action;   }
+    renderP2();
+    if (parsed._save) setTimeout(() => saveP2Rows(), 300);
+    return true;
+  }
+
+  function applyToP3(parsed) {
+    if (parsed.matCode && parsed.matCode !== currentStockMat) {
+      currentStockMat = parsed.matCode;
+      const sel = document.getElementById('stockMatSelect');
+      if (sel) sel.value = currentStockMat;
+      loadStockTable();
+    }
+    if (parsed._addRow) addP3Row();
+    const rows = p3Rows.filter(r => r.isNew && r.matCode === currentStockMat);
+    if (!rows.length) { toast('ไม่มีแถวใหม่ กรุณาเพิ่มรายการก่อน', 'error'); return false; }
+    const row = rows[rows.length-1];
+    if (parsed.date)        row.date = parsed.date;
+    if (parsed.pd)          row.pd = parsed.pd;
+    if (parsed.action)      row.action = parsed.action;
+    if (parsed.sizeW)       row.sizeW = parseFloat(parsed.sizeW);
+    if (parsed.sizeL)       row.sizeL = parseFloat(parsed.sizeL);
+    if (parsed.estimate)    row.estimate = parseFloat(parsed.estimate);
+    if (parsed.estimatePcs) row.estimatePcs = parseFloat(parsed.estimatePcs);
+    if (parsed.reusePD)     row.reusePD = parsed.reusePD;
+    if (parsed.remark)      row.remark = parsed.remark;
+    if (parsed.sizeW && parsed.sizeL && !parsed.estimate) {
+      row.estimate = calcEstimate(row.sizeW, row.sizeL, currentStockMat);
+    }
+    renderP3();
+    if (parsed._save) setTimeout(() => saveP3Rows(), 300);
+    return true;
+  }
+
+  // ===================== RENDER PREVIEW =====================
+  function renderParsedPreview(parsed, page) {
+    const matName = parsed.matCode
+      ? MATERIALS.find(m=>m.code===parsed.matCode)?.name?.substring(0,45)||parsed.matCode
+      : null;
+    const items = [];
+    const add = (label, val) => { if (val !== undefined && val !== null && val !== '') items.push({ label, val }); };
+
+    if (page === 2) {
+      if (parsed._addRow) add('คำสั่ง','➕ เพิ่มรายการใหม่');
+      add('วันที่', parsed.date);
+      add('PD', parsed.pd);
+      add('แบบ', parsed.model);
+      add('Qty.', parsed.qty);
+      add('วัตถุดิบ', matName);
+      add('BOM', parsed.bom);
+      add('Reuse', parsed.reuse);
+      add('PD Reuse', parsed.reusePD);
+      add('จำนวนเบิก', parsed.issued);
+      add('จำนวนที่ได้รับ', parsed.received);
+      add('ขอดำเนินการ', parsed.action);
+      if (parsed._save) add('คำสั่ง','💾 บันทึก');
+    } else {
+      if (parsed._addRow) add('คำสั่ง','➕ เพิ่มรายการใหม่');
+      add('วัตถุดิบ', matName);
+      add('วันที่', parsed.date);
+      add('PD', parsed.pd);
+      add('ขอดำเนินการ', parsed.action);
+      if (parsed.sizeW) add('ขนาด', `${parsed.sizeW} × ${parsed.sizeL} mm`);
+      add('Estimate (แผ่น)', parsed.estimate);
+      add('Estimate (pcs.)', parsed.estimatePcs);
+      add('PD Reuse', parsed.reusePD);
+      add('หมายเหตุ', parsed.remark);
+      if (parsed._save) add('คำสั่ง','💾 บันทึก');
+    }
+
+    if (!items.length) return false;
+    const html = items.map(i =>
+      `<div style="display:flex;gap:8px;align-items:baseline;">
+        <span style="color:var(--text3);min-width:90px;font-size:11px;">${i.label}</span>
+        <span style="color:var(--text);font-weight:600;">${i.val}</span>
+      </div>`
+    ).join('');
+    document.getElementById('voiceParsedList').innerHTML = html;
+    document.getElementById('voiceParsedWrap').style.display = 'block';
+    document.getElementById('voiceActions').style.display = 'flex';
+    return true;
+  }
+
+  // ===================== TTS — Text-to-Speech =====================
+  let ttsEnabled = true; // เปิด/ปิดเสียงได้
+
+  function speak(text, onEnd) {
+    if (!ttsEnabled) { onEnd && onEnd(); return; }
+    if (!window.speechSynthesis) { onEnd && onEnd(); return; }
+    window.speechSynthesis.cancel(); // หยุดเสียงก่อนหน้า
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = 'th-TH';
+    utt.rate = 1.1;   // เร็วกว่าปกติเล็กน้อย
+    utt.pitch = 1.0;
+    utt.volume = 1.0;
+    // พยายามใช้เสียงภาษาไทยถ้ามี
+    const voices = window.speechSynthesis.getVoices();
+    const thVoice = voices.find(v => v.lang.startsWith('th'));
+    if (thVoice) utt.voice = thVoice;
+    if (onEnd) utt.onend = onEnd;
+    window.speechSynthesis.speak(utt);
+  }
+
+  // โหลด voices ล่วงหน้า (บาง browser โหลด async)
+  if (window.speechSynthesis) {
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+  }
+
+  // นับคำในข้อความ (ตัดช่องว่าง)
+  function countWords(text) {
+    return text.trim().split(/\s+/).filter(w => w.length > 0).length;
+  }
+
+  // สร้างข้อความสรุปสำหรับ TTS ทวนคำสั่ง
+  function buildSpeakSummary(parsed, page) {
+    const parts = [];
+    if (parsed._addRow) parts.push('เพิ่มรายการใหม่');
+    if (parsed.date === today()) parts.push('วันที่วันนี้');
+    if (parsed.pd) parts.push('พีดี ' + parsed.pd.split('').join(' '));
+    if (parsed.model) parts.push('แบบ ' + parsed.model);
+    if (parsed.matCode) {
+      const mat = MATERIALS.find(m => m.code === parsed.matCode);
+      if (mat) {
+        // ย่อชื่อวัตถุดิบให้สั้นพอ TTS อ่านได้
+        const shortName = mat.name.split(',')[0].replace(/mm\.|มม\.|Thk\./gi,'').trim().substring(0,30);
+        parts.push('วัตถุดิบ ' + shortName);
+      }
+    }
+    if (parsed.bom)      parts.push('บอม ' + parsed.bom);
+    if (parsed.reuse)    parts.push('รียูส ' + parsed.reuse);
+    if (parsed.issued)   parts.push('จำนวนเบิก ' + parsed.issued);
+    if (parsed.action)   parts.push(parsed.action);
+    if (parsed.sizeW && parsed.sizeL) parts.push('ขนาด ' + parsed.sizeW + ' คูณ ' + parsed.sizeL);
+    if (parsed.estimate) parts.push('ยอด ' + parsed.estimate + ' แผ่น');
+    if (parsed.estimatePcs) parts.push('ยอด ' + parsed.estimatePcs + ' ชิ้น');
+    if (parsed._save) parts.push('บันทึก');
+    return parts.join(' — ');
+  }
+
+  // ===================== NAVIGATION COMMANDS =====================
+  function handleNavCommand(t) {
+    // ไปหน้า 2
+    if (/(?:ไป|เปิด|หน้า)\s*(?:รายการเบิก|หน้า\s*2|สอง)/.test(t)) {
+      speak('ไปหน้ารายการเบิก');
+      setTimeout(() => goToPage(2), 400);
+      return true;
+    }
+    // ไปหน้า 3
+    if (/(?:ไป|เปิด|หน้า)\s*(?:stock|สต็อก|สต็อค|หน้า\s*3|สาม)/.test(t)) {
+      speak('ไปหน้า Stock');
+      setTimeout(() => goToPage(3), 400);
+      return true;
+    }
+    // ไปหน้า 4
+    if (/(?:ไป|เปิด|หน้า)\s*(?:on.?hand|ออนแฮนด์|หน้า\s*4|สี่)/.test(t)) {
+      speak('ไปหน้า On-Hand');
+      setTimeout(() => goToPage(4), 400);
+      return true;
+    }
+    // เพิ่มรายการ (ไม่มีข้อมูลอื่น)
+    if (/^(?:เพิ่มรายการ|เพิ่มแถว|รายการใหม่)$/.test(t.trim())) {
+      const pg = detectPage();
+      speak('เพิ่มรายการใหม่');
+      if (pg === 2) addP2Row();
+      else if (pg === 3) addP3Row();
+      return true;
+    }
+    // บันทึก (คำสั่งเดียว)
+    if (/^(?:บันทึก|save|เซฟ)$/.test(t.trim())) {
+      const pg = detectPage();
+      speak('บันทึกข้อมูล');
+      if (pg === 2) setTimeout(() => saveP2Rows(), 400);
+      else if (pg === 3) setTimeout(() => saveP3Rows(), 400);
+      return true;
+    }
+    // เปิด/ปิดเสียง
+    if (/ปิด\s*เสียง|silent|mute/.test(t)) {
+      ttsEnabled = false;
+      toast('ปิดเสียงตอบกลับแล้ว', 'info');
+      return true;
+    }
+    if (/เปิด\s*เสียง|unmute/.test(t)) {
+      ttsEnabled = true;
+      speak('เปิดเสียงแล้ว');
+      return true;
+    }
+    return false;
+  }
+
+  // ===================== ON-HAND QUERY (ข้อ 4) =====================
+  function handleQuery(raw, t) {
+    // ตรวจว่าเป็นคำถาม
+    if (!/(?:มียอด|ยอดคงเหลือ|on.?hand|มีกี่|เหลือกี่|มีเท่าไร|สอบถาม|ถามว่า|check|ยอดมีไหม)/.test(t))
+      return false;
+
+    // หาวัตถุดิบที่ถาม
+    const matCode = matchMaterial(raw, t);
+    if (!matCode) {
+      speak('ไม่พบวัตถุดิบที่ต้องการ กรุณาระบุชนิดและความหนา');
+      setStatus('❓ ไม่พบวัตถุดิบ', 'var(--orange)', false);
+      document.getElementById('voiceTranscript').textContent = '❓ ไม่พบวัตถุดิบที่ถาม';
+      return true;
+    }
+
+    // คำนวณยอดจาก p3Rows (approved เท่านั้น)
+    const mat = MATERIALS.find(m => m.code === matCode);
+    const matRows = p3Rows.filter(r => r.matCode === matCode && r.status === 'approved');
+
+    // คำนวณด้วย calcAllBalances สำหรับวัตถุดิบนี้
+    const pcs = isPcsMat(matCode);
+    let mt = 0, sc = 0, mtPcs = 0;
+    matRows.forEach(r => {
+      const est    = parseFloat(r.estimate||0);
+      const estPcs = parseFloat(r.estimatePcs||0);
+      if      (r.action === 'นำเข้า')                                   { pcs ? mtPcs += estPcs : mt += est; }
+      else if (r.action === 'นำออก Reuse')                              { pcs ? mtPcs -= estPcs : mt -= est; }
+      else if (r.action === 'ทิ้ง Scrap' || r.action === 'โอนทิ้ง Scrap') { pcs ? (mtPcs-=estPcs,sc+=estPcs) : (mt-=est,sc+=est); }
+      else if (r.action === 'โอนกลับ MT')                               { pcs ? (sc-=estPcs,mtPcs+=estPcs) : (sc-=est,mt+=est); }
+    });
+    mt = parseFloat(mt.toFixed(4));
+    sc = parseFloat(sc.toFixed(4));
+    mtPcs = parseFloat(mtPcs.toFixed(4));
+
+    const matShortName = mat.name.split(',')[0].trim().substring(0,35);
+    let answerText = '';
+    let speakText  = '';
+
+    if (pcs) {
+      answerText = `📦 ${matShortName}\nPD-MTsheet: ${mtPcs} pcs. | Scrap: ${sc.toFixed(0)} pcs.`;
+      speakText  = `${matShortName} มียอด PD-MTsheet ${mtPcs} ชิ้น ยอด Scrap ${sc.toFixed(0)} ชิ้น`;
+    } else {
+      answerText = `📦 ${matShortName}\nPD-MTsheet: ${mt} แผ่น | Scrap: ${sc} แผ่น`;
+      speakText  = `${matShortName} มียอด PD-MTsheet ${mt} แผ่น ยอด Scrap ${sc} แผ่น`;
+    }
+
+    // แสดงผลใน panel
+    document.getElementById('voiceTranscript').innerHTML =
+      answerText.replace(/\n/g,'<br>');
+    setStatus('✅ ผลลัพธ์', 'var(--green)', false);
+    document.getElementById('voiceParsedWrap').style.display = 'none';
+    document.getElementById('voiceActions').style.display = 'none';
+    speak(speakText);
+    return true;
+  }
+
+  // ===================== HANDLE FINAL =====================
+  function handleFinalTranscript(text) {
+    currentPage = detectPage();
+    const t = norm(text);
+    const wordCount = countWords(text);
+    const isLong = wordCount > 15; // ข้อ 1 & 2: เกิน 15 คำ = auto confirm
+
+    // ข้อ 3: คำสั่ง navigation ก่อน
+    if (handleNavCommand(t)) return;
+
+    // ข้อ 4: คำถาม On-Hand
+    if (handleQuery(text, t)) return;
+
+    // คำสั่ง confirm/ยืนยัน/ยกเลิก (ใช้กับ mode ≤15 คำ)
+    if (/^(?:ยืนยัน|confirm|ใช่|โอเค|ok)$/.test(t.trim()) && lastParsed) {
+      execConfirm();
+      return;
+    }
+    if (/^(?:ยกเลิก|cancel|ไม่|ไม่ใช่)$/.test(t.trim()) && lastParsed) {
+      speak('ยกเลิกคำสั่ง');
+      clear();
+      return;
+    }
+
+    // Parse คำสั่งกรอกข้อมูล
+    const parsed = currentPage === 3 ? parseP3(text) : parseP2(text);
+    lastParsed = { parsed, page: currentPage, isLong };
+
+    const hasData = renderParsedPreview(parsed, currentPage);
+
+    if (!hasData) {
+      setStatus('ไม่เข้าใจคำสั่ง ลองพูดใหม่', 'var(--orange)', false);
+      document.getElementById('voiceTranscript').textContent = `"${text}"\n\n⚠️ ไม่พบข้อมูลที่จะกรอก`;
+      speak('ไม่เข้าใจคำสั่ง กรุณาพูดใหม่');
+      return;
+    }
+
+    if (isLong) {
+      // ข้อ 2: คำสั่งยาว → apply ทันที ไม่ต้องรอ confirm
+      setStatus('⚡ กำลังกรอกข้อมูล...', 'var(--accent-light)', false);
+      execConfirm();
+    } else {
+      // ข้อ 1: คำสั่งสั้น → ทวนแล้วรอ confirm
+      const summary = buildSpeakSummary(parsed, currentPage);
+      if (summary) {
+        speak(`รับคำสั่ง — ${summary} — กรุณายืนยัน`, () => {
+          // หลังพูดจบ แจ้งสถานะ
+          setStatus('รอการยืนยัน — พูดว่า "ยืนยัน" หรือกดปุ่ม', 'var(--green)', false);
+        });
+      }
+      setStatus('รับคำสั่งแล้ว — กดยืนยัน หรือพูด "ยืนยัน"', 'var(--green)', false);
+    }
+  }
+
+  // ===================== EXECUTE CONFIRM =====================
+  function execConfirm() {
+    if (!lastParsed) return;
+    const { parsed, page } = lastParsed;
+    const ok = page === 3 ? applyToP3(parsed) : applyToP2(parsed);
+    if (ok) {
+      speak('กรอกข้อมูลสำเร็จแล้ว');
+      toast('กรอกข้อมูลจากเสียงแล้ว ✓', 'success');
+      setStatus('✓ กรอกข้อมูลแล้ว', 'var(--green)', false);
+      document.getElementById('voiceActions').style.display = 'none';
+      document.getElementById('voiceTranscript').textContent = 'พร้อมรับคำสั่งถัดไป...';
+      lastParsed = null;
+      // เปิดฟังต่ออัตโนมัติ
+      setTimeout(() => startListening(), 1200);
+    } else {
+      speak('เกิดข้อผิดพลาด ไม่สามารถกรอกข้อมูลได้');
+    }
+  }
+
+  // ===================== PUBLIC API =====================
+  function toggle() {
+    const panel = document.getElementById('voicePanel');
+    if (!panel) return;
+    const isOpen = panel.style.display !== 'none';
+    if (!isOpen) {
+      panel.style.display = 'block';
+      if (!recognition) {
+        if (!init()) return;
+      }
+      currentPage = detectPage();
+      const helpTxt = document.getElementById('voiceHelpTxt');
+      const helpMap = {
+        2: '💡 ตัวอย่าง: "เพิ่มรายการ วันนี้ พีดี 26003298 แบบ DS-35545 อลูมิเนียม #16 บอม 0.58 รียูส 0 จำนวนเบิก 1 บันทึก" | ถามว่า: "อลูมิเนียม #18 มียอดเท่าไร" | นำทาง: "ไปหน้า Stock"',
+        3: '💡 ตัวอย่าง: "เพิ่มรายการ วันนี้ พีดี 26003298 นำเข้า กว้าง 600 คูณ 800 บันทึก" | ถามว่า: "สแตนเลส 1.5 มิล มียอดไหม" | นำทาง: "ไปหน้า On-Hand"',
+        4: '💡 นำทาง: "ไปหน้ารายการเบิก" / "ไปหน้า Stock" | ถามว่า: "อลูมิเนียม #18 มียอดเท่าไร" | "ปิดเสียง" / "เปิดเสียง"'
+      };
+      helpTxt.innerHTML = helpMap[currentPage] || helpMap[2];
+      startListening();
+    } else {
+      stopListening();
+      panel.style.display = 'none';
+    }
+  }
+
+  function setNavMicActive(active) {
+    ['voiceNavBtn2','voiceNavBtn3','voiceNavBtn4'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.color      = active ? '#ef4444' : '';
+      el.style.borderColor = active ? '#ef4444' : '';
+      el.style.background  = active ? 'rgba(239,68,68,0.1)' : '';
+      el.textContent = active ? '⏹️' : '🎙️';
+    });
+  }
+
+  function startListening() {
+    if (!recognition) { if (!init()) return; }
+    if (isListening) return;
+    // ตรวจ protocol ก่อน
+    if (location.protocol === 'file:') {
+      setStatus('❌ ต้องเปิดผ่าน https://', 'var(--red)', false);
+      document.getElementById('voiceTranscript').innerHTML =
+        `<strong style="color:var(--red);">ใช้ไมค์จาก file:// ไม่ได้</strong><br><br>
+        ต้องอัปโหลดไฟล์ขึ้น server ก่อนครับ<br>
+        เช่น GitHub Pages, Google Drive, หรือ<br>VS Code Live Server extension`;
+      document.getElementById('voicePanel').style.display = 'block';
+      return;
+    }
+    document.getElementById('voiceParsedWrap').style.display = 'none';
+    document.getElementById('voiceActions').style.display = 'none';
+    setNavMicActive(true);
+    try { recognition.start(); } catch(e) { console.warn(e); }
+  }
+
+  function stopListening() {
+    if (recognition && isListening) recognition.stop();
+    isListening = false;
+    setNavMicActive(false);
+  }
+
+  function confirm() {
+    if (!lastParsed) return;
+    execConfirm();
+  }
+
+  function retry() {
+    document.getElementById('voiceParsedWrap').style.display = 'none';
+    document.getElementById('voiceActions').style.display = 'none';
+    lastParsed = null;
+    speak('พร้อมรับคำสั่งใหม่', () => startListening());
+  }
+
+  function clear() {
+    window.speechSynthesis?.cancel();
+    lastParsed = null;
+    document.getElementById('voiceParsedWrap').style.display = 'none';
+    document.getElementById('voiceActions').style.display = 'none';
+    document.getElementById('voiceTranscript').textContent = 'กดปุ่มไมค์แล้วพูดคำสั่ง...';
+    setStatus('พร้อมรับคำสั่ง', 'var(--text3)', false);
+  }
+
+  function closePanel() {
+    window.speechSynthesis?.cancel();
+    stopListening();
+    document.getElementById('voicePanel').style.display = 'none';
+  }
+
+  return { toggle, confirm, retry, clear, close: closePanel, start: startListening, execConfirm };
+})();
+
+// Expose voice functions
+function toggleVoice()     { VoiceEngine.toggle();  }
+function closeVoicePanel() { VoiceEngine.close();   }
+function voiceConfirm()    { VoiceEngine.confirm(); }
+function voiceRetry()      { VoiceEngine.retry();   }
+function voiceClear()      { VoiceEngine.clear();   }
+
+// เพิ่มใน window
+Object.assign(window, { toggleVoice, closeVoicePanel, voiceConfirm, voiceRetry, voiceClear });
+
+setTimeout(() => {
+  if (!fbReady) {
+    document.getElementById('fbLoadMsg').textContent = 'เชื่อมต่อไม่สำเร็จ';
+    document.getElementById('fbLoadSub').style.display = 'none';
+    document.getElementById('fbLoadErr').style.display = 'block';
+  }
+}, 6000);
+
+</script>
+
+<!-- ========= END VOICE UI ========= -->
+</body>
+</html>
+<!-- ปุ่มไมค์ลอย (ซ่อน — ย้ายไปอยู่ใน nav แล้ว) -->
+<button id="voiceBtn" onclick="toggleVoice()"
+  style="display:none;">🎙️</button>
+
+<!-- Voice Preview Panel — drop down จาก nav -->
+<div id="voicePanel" style="
+  display:none; position:fixed; top:52px; right:16px; z-index:301;
+  width:330px; background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius2); box-shadow:0 10px 40px rgba(0,0,0,0.5);
+  overflow:hidden; animation:fadeUp 0.2s ease;">
+  <div style="background:var(--surface2); padding:10px 14px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border);">
+    <div id="voiceStatusDot" style="width:10px;height:10px;border-radius:50%;background:var(--text3);flex-shrink:0;"></div>
+    <span style="font-size:12px;font-weight:600;color:var(--text);" id="voiceStatusTxt">พร้อมรับคำสั่ง</span>
+    <button onclick="closeVoicePanel()" style="margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;">✕</button>
+  </div>
+  <!-- transcript display -->
+  <div style="padding:10px 14px; min-height:48px;">
+    <div id="voiceTranscript" style="font-size:12px;color:var(--text2);line-height:1.6;font-style:italic;">กดปุ่มไมค์แล้วพูดคำสั่ง...</div>
+  </div>
+  <!-- parsed preview -->
+  <div id="voiceParsedWrap" style="display:none; border-top:1px solid var(--border); padding:10px 14px;">
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">ข้อมูลที่จะกรอก</div>
+    <div id="voiceParsedList" style="font-size:12px;line-height:1.8;"></div>
+  </div>
+  <!-- actions -->
+  <div id="voiceActions" style="display:none; border-top:1px solid var(--border); padding:10px 14px; display:none; gap:6px; flex-wrap:wrap;">
+    <button onclick="voiceConfirm()" class="btn-sm btn-primary" style="flex:1;">✓ ยืนยัน</button>
+    <button onclick="voiceRetry()" class="btn-sm btn-outline" style="flex:1;">🔄 พูดใหม่</button>
+    <button onclick="voiceClear()" class="btn-sm btn-danger-outline" style="flex:1;">✕ ล้าง</button>
+  </div>
+  <!-- help -->
+  <div style="border-top:1px solid var(--border); padding:8px 14px; background:var(--surface2);">
+    <div style="font-size:10px;color:var(--text3);line-height:1.6;" id="voiceHelpTxt">
+      💡 ตัวอย่าง: "เพิ่มรายการใหม่ วันที่วันนี้ พีดี 26003298 แบบ DS-35545 จำนวน 25 อลูมิเนียม สี คูล แปด สิบสอง บอม ศูนย์ จุด ห้าแปด รียูส ศูนย์ จำนวนเบิก หนึ่ง บันทึก"
+    </div>
+  </div>
+</div>
+
+<!-- ========= END OF APP ========= -->
+</body>
+</html>
