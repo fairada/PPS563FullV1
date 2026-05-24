@@ -3269,15 +3269,41 @@ const VoiceEngine = (() => {
   return { toggle, confirm, retry, clear, close: closePanel, start: startListening, execConfirm };
 })();
 
-// Expose voice functions
+// Expose voice functions to window (for nav buttons that use onclick in HTML)
 function toggleVoice()     { VoiceEngine.toggle();  }
 function closeVoicePanel() { VoiceEngine.close();   }
 function voiceConfirm()    { VoiceEngine.confirm(); }
 function voiceRetry()      { VoiceEngine.retry();   }
 function voiceClear()      { VoiceEngine.clear();   }
 
-// เพิ่มใน window
-Object.assign(window, { toggleVoice, closeVoicePanel, voiceConfirm, voiceRetry, voiceClear });
+Object.assign(window, {
+  doLogin, showLogoutConfirm, goToPage,
+  addP2Row, saveP2Rows, deleteSelectedP2, filterP2, bulkApprove,
+  requestDelete2, approveDelete2, updateSelInfo,
+  p2Field, updateP2Row,
+  loadStockTable, addP3Row, addP3TransferRow, saveP3Rows, deleteSelectedP3,
+  requestDelete3, approveDelete3,
+  p3Field, p3SizeChange, p3EstimateManual, p3EstimatePcsChange, p3ChangeAction, updateP3Row,
+  renderP4, exportP4Excel,
+  toggleNotif, readNotif, closeModal,
+  exportP2Excel, exportP3Excel,
+  updateRunningBalanceCells, isPcsMat,
+  toggleVoice, closeVoicePanel, voiceConfirm, voiceRetry, voiceClear
+});
+
+// Bind voice panel buttons ด้วย addEventListener (แก้ปัญหา module scope)
+// ต้องรอ DOM ready ก่อน
+document.addEventListener('DOMContentLoaded', () => {
+  const bindBtn = (id, fn) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', fn);
+  };
+  bindBtn('voiceConfirmBtn', () => VoiceEngine.confirm());
+  bindBtn('voiceRetryBtn',   () => VoiceEngine.retry());
+  bindBtn('voiceClearBtn',   () => VoiceEngine.clear());
+  bindBtn('voiceCloseBtn',   () => VoiceEngine.close());
+  bindBtn('voiceBtn',        () => VoiceEngine.toggle());
+});
 
 setTimeout(() => {
   if (!fbReady) {
@@ -3289,14 +3315,10 @@ setTimeout(() => {
 
 </script>
 
-<!-- ========= END VOICE UI ========= -->
-</body>
-</html>
-<!-- ปุ่มไมค์ลอย (ซ่อน — ย้ายไปอยู่ใน nav แล้ว) -->
-<button id="voiceBtn" onclick="toggleVoice()"
-  style="display:none;">🎙️</button>
+<!-- ปุ่มไมค์ลอย (ซ่อน) -->
+<button id="voiceBtn" style="display:none;">🎙️</button>
 
-<!-- Voice Preview Panel — drop down จาก nav -->
+<!-- Voice Preview Panel -->
 <div id="voicePanel" style="
   display:none; position:fixed; top:52px; right:16px; z-index:301;
   width:330px; background:var(--surface); border:1px solid var(--border);
@@ -3305,31 +3327,27 @@ setTimeout(() => {
   <div style="background:var(--surface2); padding:10px 14px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border);">
     <div id="voiceStatusDot" style="width:10px;height:10px;border-radius:50%;background:var(--text3);flex-shrink:0;"></div>
     <span style="font-size:12px;font-weight:600;color:var(--text);" id="voiceStatusTxt">พร้อมรับคำสั่ง</span>
-    <button onclick="closeVoicePanel()" style="margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;">✕</button>
+    <button id="voiceCloseBtn" style="margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;">✕</button>
   </div>
-  <!-- transcript display -->
   <div style="padding:10px 14px; min-height:48px;">
     <div id="voiceTranscript" style="font-size:12px;color:var(--text2);line-height:1.6;font-style:italic;">กดปุ่มไมค์แล้วพูดคำสั่ง...</div>
   </div>
-  <!-- parsed preview -->
   <div id="voiceParsedWrap" style="display:none; border-top:1px solid var(--border); padding:10px 14px;">
     <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">ข้อมูลที่จะกรอก</div>
     <div id="voiceParsedList" style="font-size:12px;line-height:1.8;"></div>
   </div>
-  <!-- actions -->
-  <div id="voiceActions" style="display:none; border-top:1px solid var(--border); padding:10px 14px; display:none; gap:6px; flex-wrap:wrap;">
-    <button onclick="voiceConfirm()" class="btn-sm btn-primary" style="flex:1;">✓ ยืนยัน</button>
-    <button onclick="voiceRetry()" class="btn-sm btn-outline" style="flex:1;">🔄 พูดใหม่</button>
-    <button onclick="voiceClear()" class="btn-sm btn-danger-outline" style="flex:1;">✕ ล้าง</button>
+  <div id="voiceActions" style="display:none; border-top:1px solid var(--border); padding:10px 14px; gap:6px; flex-wrap:wrap;">
+    <button id="voiceConfirmBtn" class="btn-sm btn-primary" style="flex:1;">✓ ยืนยัน</button>
+    <button id="voiceRetryBtn" class="btn-sm btn-outline" style="flex:1;">🔄 พูดใหม่</button>
+    <button id="voiceClearBtn" class="btn-sm btn-danger-outline" style="flex:1;">✕ ล้าง</button>
   </div>
-  <!-- help -->
   <div style="border-top:1px solid var(--border); padding:8px 14px; background:var(--surface2);">
     <div style="font-size:10px;color:var(--text3);line-height:1.6;" id="voiceHelpTxt">
-      💡 ตัวอย่าง: "เพิ่มรายการใหม่ วันที่วันนี้ พีดี 26003298 แบบ DS-35545 จำนวน 25 อลูมิเนียม สี คูล แปด สิบสอง บอม ศูนย์ จุด ห้าแปด รียูส ศูนย์ จำนวนเบิก หนึ่ง บันทึก"
+      💡 ตัวอย่าง: "เพิ่มรายการ วันนี้ พีดี 26003298 แบบ DS-35545 อลูมิเนียม #16 บอม 0.58 รียูส 0 จำนวนเบิก 1 บันทึก"
     </div>
   </div>
 </div>
 
-<!-- ========= END OF APP ========= -->
+<!-- ========= END VOICE UI ========= -->
 </body>
 </html>
